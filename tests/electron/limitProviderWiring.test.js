@@ -349,10 +349,8 @@ test('the external URL allowlist admits exactly the provider consoles it should'
     'https://status.cursor.com/',
     'https://status.deepseek.com/',
     'https://github.com/junhoyeo/tokscale',
-    'https://github.com/Javis603/token-monitor/releases',
-    'https://www.npmjs.com/package/@tokscale/cli',
-    'https://javis-ai.com/token-monitor',
-    'https://www.javis-ai.com/token-monitor/'
+    'https://github.com/remexstudio/remex-meter/releases',
+    'https://www.npmjs.com/package/@tokscale/cli'
   ];
   for (const url of allowed) assert.equal(isAllowedExternalUrl(url), true, url);
   const denied = [
@@ -376,7 +374,9 @@ test('the external URL allowlist admits exactly the provider consoles it should'
     'https://codex-resets.com/path',
     'https://github.com/junhoyeo',
     'https://github.com/Javis603/other-repo',
+    'https://github.com/Javis603/token-monitor/releases',
     'https://javis-ai.com/',
+    'https://javis-ai.com/token-monitor',
     'http://claude.ai/settings',
     'https://evil-claude.ai/settings',
     'https://claude.ai.evil.com/settings',

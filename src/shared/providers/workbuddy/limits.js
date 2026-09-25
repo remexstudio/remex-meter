@@ -13,7 +13,7 @@ const WORKBUDDY_PRODUCT_CODE = 'p_tcaca';
 const WORKBUDDY_PERSONAL_RANGE_MS = 101 * 365 * 24 * 60 * 60 * 1000;
 // The Electron reader reports why the app-owned session is unusable. Only the
 // encrypted case changes the limits outcome — signing in again cannot fix a
-// credential the app sealed with a key Token Monitor does not hold — so it is
+// credential the app sealed with a key Remex Meter does not hold — so it is
 // the one reason both layers have to agree on.
 const WORKBUDDY_SESSION_REASON_ENCRYPTED = 'encrypted';
 const WORKBUDDY_SESSION_ENCRYPTED_ACTION = 'appSessionEncrypted';

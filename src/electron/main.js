@@ -289,6 +289,7 @@ const { WIDGET_DEMAND_MARKER, WIDGET_DEMAND_PROVISIONAL_MARKER, createMacWidgetD
 const linuxAutostart = require('./linuxAutostart');
 const { codexAccountIdForProvider, localLiveCodexProvider } = require('./renderer/accountIdentity');
 const {
+  buildMeterMenuTemplate,
   buildTrayIcon,
   createTray,
   formatTrayText,
@@ -406,7 +407,9 @@ const {
 
 if (!app.isPackaged) loadDotEnv();
 
-const APP_NAME = 'Token Monitor';
+const { APP_NAME, aboutPanelOptions } = require('./appIdentity');
+const { createMeterPopover } = require('./meterPopover');
+const { buildMeterPopoverModel } = require('./meterPopoverModel');
 const APP_ICON_PATH = path.join(__dirname, '..', '..', 'assets', 'icon.png');
 const WINDOWS_APP_ICON_PATH = path.join(__dirname, '..', '..', 'assets', 'icon-win.png');
 
@@ -492,7 +495,8 @@ const diagnosticJournal = createDiagnosticJournal();
 const recoverMacWidgetLaunchServicesRegistration = createMacWidgetLaunchServicesRecovery();
 
 app.setName(APP_NAME);
-if (process.platform === 'win32') app.setAppUserModelId('com.javis.tokenmonitor');
+if (process.platform === 'darwin') app.setAboutPanelOptions(aboutPanelOptions(app.getVersion()));
+if (process.platform === 'win32') app.setAppUserModelId('studio.remex.meter');
 
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) app.exit(0);
@@ -638,7 +642,9 @@ function defaultSettings() {
     windowMaximized: false,
     zoomFactor: 1,
     showTrayIcon: true,
-    trayMode: false,
+    // Remex Meter is a menu-bar utility on macOS: no window at launch, no Dock
+    // icon; the status item opens the Meter popover.
+    trayMode: process.platform === 'darwin',
     hideAppIcon: false,
     trayContent: 'tokens',
     trayCustomLayout: createDefaultTrayLayout(),
@@ -648,7 +654,8 @@ function defaultSettings() {
     currencyRates: {},
     startAtLogin: false,
     automaticAppUpdates: false,
-    language: 'auto',
+    // English by default; a system-language 'auto' is an explicit choice.
+    language: 'en',
     ...initialAccountSettings(process.env),
     appUpdate: {
       lastCheckedAt: null,
@@ -1915,7 +1922,7 @@ function normalizeHubMode(value, fallback = 'local') {
   return HUB_MODE_VALUES.has(v) ? v : fallback;
 }
 
-function normalizeLanguageSetting(value, fallback = 'auto') {
+function normalizeLanguageSetting(value, fallback = 'en') {
   const raw = String(value || '').replace(/_/g, '-').trim();
   const lower = raw.toLowerCase();
   if (lower === 'auto') return 'auto';
@@ -2296,7 +2303,7 @@ function reportCredentialStorageError(context, error) {
   try {
     dialog.showErrorBox(
       'Credential storage error',
-      `Token Monitor could not safely access credentials.json (${context}). The save was stopped and previous data was restored where possible. Check the file's JSON and permissions, then restart the app.\n\n${detail}`
+      `Remex Meter could not safely access credentials.json (${context}). The save was stopped and previous data was restored where possible. Check the file's JSON and permissions, then restart the app.\n\n${detail}`
     );
   } catch (_) {}
 }
@@ -2879,6 +2886,7 @@ let latestHubStatsGeneration = null;
 let latestHubStatsIdentity = null;
 let hubModeGeneration = 0;
 let tray = null;
+let meterPopover = null;
 let latestStats = null;
 let macWidgetSnapshotController = null;
 let macWidgetDemand = null;
@@ -4189,6 +4197,7 @@ function sendPush(payload, options = {}) {
     updateEdgeDockCells(visibleStats);
     syncCodexPresentationActiveAccount();
     updateTrayDisplay();
+    if (meterPopover?.isVisible()) meterPopover.push();
     if (!options.skipExport && settings.exportAutoEnabled && settings.exportDir && Date.now() - lastExportAt >= exportIntervalMs()) {
       lastExportAt = Date.now();
       writeExportTo(settings.exportDir, payload.data.stats.periods, { skipUnchanged: true })
@@ -4301,7 +4310,7 @@ function updateTrayDisplay() {
   if (trayShowsTitle(process.platform)) tray.setTitle(text);
   // Tooltip always shows a useful summary, even in icon-only mode where setTitle is blank.
   const tip = formatTrayText(visibleStats, 'both', currency, compactOptions);
-  tray.setToolTip(`Token Monitor - ${tip}`);
+  tray.setToolTip(`Meter · ${tip}`);
   // Icon: rendered bars image in bar modes, otherwise the app icon.
   let icon = null;
   if (barsImageMode || trayImageMode || customImageMode) {
@@ -4780,6 +4789,7 @@ async function pushSystemUiThemeAfterChange() {
 function pushSettingsToRenderer() {
   const payload = settingsForRenderer();
   syncEdgeDock(payload);
+  if (meterPopover?.isVisible()) meterPopover.push();
   if (mainWindow && !mainWindow.isDestroyed()) {
     try { mainWindow.webContents.send('settings:push', payload); } catch (_) {}
   }
@@ -5175,6 +5185,10 @@ function unregisterWindowToggleShortcut() {
 }
 
 function handleWindowToggleShortcut() {
+  if (process.platform === 'darwin' && tray && !tray.isDestroyed()) {
+    ensureMeterPopover().toggle();
+    return;
+  }
   if (!mainWindow || mainWindow.isDestroyed()) return;
   const action = windowToggleShortcutAction({
     trayMode: Boolean(settings?.trayMode),
@@ -5188,7 +5202,37 @@ function handleWindowToggleShortcut() {
   else focusExistingWindow();
 }
 
+// macOS: the status item always opens the Meter popover. The inherited widget
+// window is reached through Settings… and keeps its own presentation modes.
+function ensureMeterPopover() {
+  if (meterPopover) return meterPopover;
+  meterPopover = createMeterPopover({
+    getTray: () => tray,
+    getState: () => ({
+      model: buildMeterPopoverModel({
+        stats: latestStats ? electronPresentationStats(latestStats) : null,
+        settings
+      })
+    }),
+    onCommand: runMeterPopoverCommand,
+    getReduceMotionPreference: () => settings?.reduceMotion,
+    isAllowedExternalUrl
+  });
+  return meterPopover;
+}
+
+function runMeterPopoverCommand(command) {
+  if (command === 'refresh') void refreshFromTray().finally(() => meterPopover?.push());
+  else if (command === 'settings') openSettingsFromTray();
+  else if (command === 'about') app.showAboutPanel();
+  else if (command === 'quit') requestAppQuit();
+}
+
 function handleTrayToggle(_tray, clickPoint = null) {
+  if (process.platform === 'darwin') {
+    ensureMeterPopover().toggle(clickPoint);
+    return;
+  }
   const action = trayToggleAction(settings);
   if (action === 'togglePopover') togglePopover(clickPoint);
   else if (action === 'focusWindow') focusExistingWindow();
@@ -5198,7 +5242,7 @@ function trayMenuLocale() {
   const preferredLanguages = typeof app.getPreferredSystemLanguages === 'function'
     ? app.getPreferredSystemLanguages()
     : [app.getLocale()];
-  return resolveLocale(settings?.language || 'auto', preferredLanguages);
+  return resolveLocale(settings?.language || 'en', preferredLanguages);
 }
 
 // `isStillCurrent`, when given, is re-checked after the wait: see
@@ -5383,6 +5427,8 @@ function ensureTray() {
   if (!shouldCreateTray(settings)) return false;
   if (tray && !tray.isDestroyed()) return;
   tray = createTray({
+    ...(process.platform === 'darwin' ? { buildMenuTemplate: buildMeterMenuTemplate } : {}),
+    onAbout: () => app.showAboutPanel(),
     getMenuState: () => {
       const codex = trayCodexMenuState();
       return {
@@ -5694,7 +5740,7 @@ async function writeExportTo(dir, periods, options = {}) {
   const files = exportFileSet({
     periods: periods || {},
     history,
-    meta: { generatedAt: new Date().toISOString(), app: { name: 'token-monitor', version: appVersion() } }
+    meta: { generatedAt: new Date().toISOString(), app: { name: 'remex-meter', version: appVersion() } }
   });
   await fs.promises.mkdir(dir, { recursive: true });
   // Per-call token so a concurrent auto + manual export to the same folder never
@@ -6264,12 +6310,8 @@ function isAllowedExternalUrl(value) {
   if (isAllowedCodexLoginUrl(value)) return true;
   if (parsed.hostname === 'github.com' && parsed.pathname.startsWith('/junhoyeo/tokscale')) return true;
   if (parsed.hostname === 'www.npmjs.com' && parsed.pathname.startsWith('/package/@tokscale/')) return true;
-  if (parsed.hostname === 'github.com' && parsed.pathname.startsWith('/Javis603/token-monitor')) return true;
+  if (parsed.hostname === 'github.com' && parsed.pathname.startsWith('/remexstudio/remex-meter')) return true;
   if (parsed.hostname === 'codex-resets.com' && (parsed.pathname === '' || parsed.pathname === '/')) return true;
-  if (
-    (parsed.hostname === 'javis-ai.com' || parsed.hostname === 'www.javis-ai.com')
-    && (parsed.pathname === '/token-monitor' || parsed.pathname.startsWith('/token-monitor/'))
-  ) return true;
   // Provider console links come from each account declaration's urlPolicy.
   if (limitProviderUrlAllowed(parsed.hostname, parsed.pathname)) return true;
   if (STATUS_PAGE_HOSTS.has(parsed.hostname) && (parsed.pathname === '' || parsed.pathname === '/')) return true;

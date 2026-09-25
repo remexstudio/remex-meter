@@ -341,7 +341,7 @@ async function listeningPorts(pid, deps = {}) {
 }
 
 const LS_SERVICE = 'exa.language_server_pb.LanguageServerService';
-const USER_AGENT = `token-monitor/${appVersion()} (+https://github.com/Javis603/token-monitor)`;
+const USER_AGENT = `remex-meter/${appVersion()} (+https://github.com/remexstudio/remex-meter)`;
 
 function statusFromHttpCode(code) {
   if (code === 401 || code === 403) return 'unauthorized';
@@ -583,7 +583,7 @@ const UNLEASH_BODY = {
       hasAnthropicModelAccess: 'true',
       ide: 'antigravity',
       ideVersion: 'unknown',
-      installationId: 'token-monitor',
+      installationId: 'remex-meter',
       language: 'UNSPECIFIED',
       os: process.platform,
       requestedModelId: 'MODEL_UNSPECIFIED'

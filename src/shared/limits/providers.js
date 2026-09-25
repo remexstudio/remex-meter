@@ -26,6 +26,9 @@
   // writes to settings. Saved user ordering is parsed separately and must not
   // be overwritten. tests/electron/limitProviderOrder.test.js pins this order.
   //
+  // `defaultEnabled: false` keeps a provider wired but off on a fresh install;
+  // only the six Remex Meter tools default on (docs/PROVIDERS.md).
+  //
   // `settingsLabel` overrides `label` wherever the desktop names the provider as
   // a tool you configure or pay for: the AI Tool Limits and Home provider lists,
   // the settings search index, and every subscription surface through
@@ -33,37 +36,44 @@
   // renames the provider on all of them at once. Surfaces that name a live
   // quota rather than a configured tool keep `label`, as the tray detail does.
   const LIMIT_PROVIDER_CATALOG = Object.freeze([
+    { id: 'cursor', label: 'Cursor' },
+    { id: 'grok', label: 'Grok' },
     { id: 'claude', label: 'Claude', settingsLabel: 'Claude Code' },
     { id: 'codex', label: 'Codex' },
     { id: 'opencode', label: 'OpenCode' },
-    { id: 'cursor', label: 'Cursor' },
-    { id: 'antigravity', label: 'Antigravity' },
-    { id: 'cline', label: 'Cline' },
-    { id: 'factory', label: 'Factory Droid' },
-    { id: 'kimi', label: 'Kimi' },
-    { id: 'grok', label: 'Grok' },
-    { id: 'copilot', label: 'GitHub Copilot' },
-    { id: 'zed', label: 'Zed' },
-    { id: 'commandcode', label: 'Command Code' },
-    { id: 'mimo', label: 'Xiaomi MiMo' },
-    { id: 'zai', label: 'GLM', settingsLabel: 'Z.ai / GLM' },
-    { id: 'zaiteam', label: 'GLM Team' },
-    { id: 'kiro', label: 'Kiro' },
-    { id: 'workbuddy', label: 'WorkBuddy' },
-    { id: 'qoder', label: 'Qoder' },
     { id: 'deepseek', label: 'DeepSeek' },
-    { id: 'devin', label: 'Devin' },
-    { id: 'typesafe', label: 'TypeSafe' },
-    { id: 'openrouter', label: 'OpenRouter' },
-    { id: 'minimax', label: 'Minimax' },
-    { id: 'volcengine', label: 'Volcengine' },
-    { id: 'ollama', label: 'Ollama' },
-    { id: 'trae', label: 'Trae CN' },
-    { id: 'alibaba', label: 'Alibaba Cloud' },
-    { id: 'thirdparty', label: 'Third-party APIs' }
-  ].map((provider) => Object.freeze({ ...provider })));
+    ...[
+      { id: 'antigravity', label: 'Antigravity' },
+      { id: 'cline', label: 'Cline' },
+      { id: 'factory', label: 'Factory Droid' },
+      { id: 'kimi', label: 'Kimi' },
+      { id: 'copilot', label: 'GitHub Copilot' },
+      { id: 'zed', label: 'Zed' },
+      { id: 'commandcode', label: 'Command Code' },
+      { id: 'mimo', label: 'Xiaomi MiMo' },
+      { id: 'zai', label: 'GLM', settingsLabel: 'Z.ai / GLM' },
+      { id: 'zaiteam', label: 'GLM Team' },
+      { id: 'kiro', label: 'Kiro' },
+      { id: 'workbuddy', label: 'WorkBuddy' },
+      { id: 'qoder', label: 'Qoder' },
+      { id: 'devin', label: 'Devin' },
+      { id: 'typesafe', label: 'TypeSafe' },
+      { id: 'openrouter', label: 'OpenRouter' },
+      { id: 'minimax', label: 'Minimax' },
+      { id: 'volcengine', label: 'Volcengine' },
+      { id: 'ollama', label: 'Ollama' },
+      { id: 'trae', label: 'Trae CN' },
+      { id: 'alibaba', label: 'Alibaba Cloud' },
+      { id: 'thirdparty', label: 'Third-party APIs' }
+    ].map((provider) => ({ ...provider, defaultEnabled: false }))
+  ].map((provider) => Object.freeze({ defaultEnabled: true, ...provider })));
 
   const LIMIT_PROVIDER_IDS = Object.freeze(LIMIT_PROVIDER_CATALOG.map((provider) => provider.id));
+  // What a fresh install enables: Remex Meter's six tools. The other providers
+  // stay wired and selectable in Settings.
+  const DEFAULT_LIMIT_PROVIDER_IDS = Object.freeze(
+    LIMIT_PROVIDER_CATALOG.filter((provider) => provider.defaultEnabled).map((provider) => provider.id)
+  );
   const LIMIT_PROVIDER_LABELS = Object.freeze(Object.fromEntries(
     LIMIT_PROVIDER_CATALOG.map(({ id, label }) => [id, label])
   ));
@@ -120,6 +130,7 @@
   return {
     LIMIT_PROVIDER_CATALOG,
     LIMIT_PROVIDER_IDS,
+    DEFAULT_LIMIT_PROVIDER_IDS,
     LIMIT_PROVIDER_LABELS,
     LIMIT_WINDOW_METRICS,
     VALID_LIMIT_WINDOW_METRICS,

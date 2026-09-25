@@ -17,8 +17,9 @@ const {
 } = require('../../src/shared/providers/copilot/limits');
 const { parseLimitProviders } = require('../../src/shared/limits/collector');
 
-test('parseLimitProviders includes Copilot in the default provider set', () => {
-  assert.ok(parseLimitProviders().includes('copilot'));
+test('parseLimitProviders accepts Copilot explicitly but not by default', () => {
+  assert.ok(!parseLimitProviders().includes('copilot'));
+  assert.deepEqual(parseLimitProviders('copilot'), ['copilot']);
 });
 
 test('copilotToken prefers explicit settings over env', () => {
