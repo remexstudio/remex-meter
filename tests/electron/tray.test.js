@@ -179,7 +179,7 @@ test('Reasonix title metadata cannot masquerade as recent activity', () => {
 });
 
 test('fallback tray icon source stays transparent and high-resolution', () => {
-  const icon = fs.readFileSync(path.join(__dirname, '..', '..', 'assets', 'icons', 'tray-token-monitor.png'));
+  const icon = fs.readFileSync(path.join(__dirname, '..', '..', 'assets', 'icons', 'tray-meter.png'));
   assert.equal(icon.toString('ascii', 1, 4), 'PNG');
   assert.deepEqual([icon.readUInt32BE(16), icon.readUInt32BE(20)], [44, 44]);
   assert.equal(icon[25], 6, 'tray PNG should use RGBA color');
@@ -215,7 +215,7 @@ test('macOS tray icon downsamples the high-resolution template like provider ico
     }
   }), resized);
 
-  assert.match(calls[0][1], /assets[\\/]icons[\\/]tray-token-monitor\.png$/);
+  assert.match(calls[0][1], /assets[\\/]icons[\\/]tray-meter\.png$/);
   assert.deepEqual(calls.slice(1), [
     ['resize', { height: 20, quality: 'best' }],
     ['template', true]

@@ -289,6 +289,7 @@ const { WIDGET_DEMAND_MARKER, WIDGET_DEMAND_PROVISIONAL_MARKER, createMacWidgetD
 const linuxAutostart = require('./linuxAutostart');
 const { codexAccountIdForProvider, localLiveCodexProvider } = require('./renderer/accountIdentity');
 const {
+  buildMeterMenuTemplate,
   buildTrayIcon,
   createTray,
   formatTrayText,
@@ -407,6 +408,8 @@ const {
 if (!app.isPackaged) loadDotEnv();
 
 const { APP_NAME, aboutPanelOptions } = require('./appIdentity');
+const { createMeterPopover } = require('./meterPopover');
+const { buildMeterPopoverModel } = require('./meterPopoverModel');
 const APP_ICON_PATH = path.join(__dirname, '..', '..', 'assets', 'icon.png');
 const WINDOWS_APP_ICON_PATH = path.join(__dirname, '..', '..', 'assets', 'icon-win.png');
 
@@ -639,7 +642,9 @@ function defaultSettings() {
     windowMaximized: false,
     zoomFactor: 1,
     showTrayIcon: true,
-    trayMode: false,
+    // Remex Meter is a menu-bar utility on macOS: no window at launch, no Dock
+    // icon; the status item opens the Meter popover.
+    trayMode: process.platform === 'darwin',
     hideAppIcon: false,
     trayContent: 'tokens',
     trayCustomLayout: createDefaultTrayLayout(),
@@ -2880,6 +2885,7 @@ let latestHubStatsGeneration = null;
 let latestHubStatsIdentity = null;
 let hubModeGeneration = 0;
 let tray = null;
+let meterPopover = null;
 let latestStats = null;
 let macWidgetSnapshotController = null;
 let macWidgetDemand = null;
@@ -4190,6 +4196,7 @@ function sendPush(payload, options = {}) {
     updateEdgeDockCells(visibleStats);
     syncCodexPresentationActiveAccount();
     updateTrayDisplay();
+    if (meterPopover?.isVisible()) meterPopover.push();
     if (!options.skipExport && settings.exportAutoEnabled && settings.exportDir && Date.now() - lastExportAt >= exportIntervalMs()) {
       lastExportAt = Date.now();
       writeExportTo(settings.exportDir, payload.data.stats.periods, { skipUnchanged: true })
@@ -4781,6 +4788,7 @@ async function pushSystemUiThemeAfterChange() {
 function pushSettingsToRenderer() {
   const payload = settingsForRenderer();
   syncEdgeDock(payload);
+  if (meterPopover?.isVisible()) meterPopover.push();
   if (mainWindow && !mainWindow.isDestroyed()) {
     try { mainWindow.webContents.send('settings:push', payload); } catch (_) {}
   }
@@ -5176,6 +5184,10 @@ function unregisterWindowToggleShortcut() {
 }
 
 function handleWindowToggleShortcut() {
+  if (process.platform === 'darwin' && tray && !tray.isDestroyed()) {
+    ensureMeterPopover().toggle();
+    return;
+  }
   if (!mainWindow || mainWindow.isDestroyed()) return;
   const action = windowToggleShortcutAction({
     trayMode: Boolean(settings?.trayMode),
@@ -5189,7 +5201,37 @@ function handleWindowToggleShortcut() {
   else focusExistingWindow();
 }
 
+// macOS: the status item always opens the Meter popover. The inherited widget
+// window is reached through Settings… and keeps its own presentation modes.
+function ensureMeterPopover() {
+  if (meterPopover) return meterPopover;
+  meterPopover = createMeterPopover({
+    getTray: () => tray,
+    getState: () => ({
+      model: buildMeterPopoverModel({
+        stats: latestStats ? electronPresentationStats(latestStats) : null,
+        settings
+      })
+    }),
+    onCommand: runMeterPopoverCommand,
+    getReduceMotionPreference: () => settings?.reduceMotion,
+    isAllowedExternalUrl
+  });
+  return meterPopover;
+}
+
+function runMeterPopoverCommand(command) {
+  if (command === 'refresh') void refreshFromTray().finally(() => meterPopover?.push());
+  else if (command === 'settings') openSettingsFromTray();
+  else if (command === 'about') app.showAboutPanel();
+  else if (command === 'quit') requestAppQuit();
+}
+
 function handleTrayToggle(_tray, clickPoint = null) {
+  if (process.platform === 'darwin') {
+    ensureMeterPopover().toggle(clickPoint);
+    return;
+  }
   const action = trayToggleAction(settings);
   if (action === 'togglePopover') togglePopover(clickPoint);
   else if (action === 'focusWindow') focusExistingWindow();
@@ -5384,6 +5426,8 @@ function ensureTray() {
   if (!shouldCreateTray(settings)) return false;
   if (tray && !tray.isDestroyed()) return;
   tray = createTray({
+    ...(process.platform === 'darwin' ? { buildMenuTemplate: buildMeterMenuTemplate } : {}),
+    onAbout: () => app.showAboutPanel(),
     getMenuState: () => {
       const codex = trayCodexMenuState();
       return {

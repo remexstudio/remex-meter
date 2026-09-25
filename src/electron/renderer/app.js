@@ -12713,7 +12713,7 @@ function trayComposerProviderIcon(provider) {
       });
     } catch (_) {}
   }
-  if (id === 'app') return '../../../assets/icons/tray-token-monitor.png';
+  if (id === 'app') return '../../../assets/icons/tray-meter.png';
   return window.TokenMonitorTrayProviderIcons.trayProviderIconSources([id])[id] || '';
 }
 
@@ -13089,7 +13089,7 @@ async function deliverTrayProviderIcons(showBadge = state.settings?.showTrayProv
   if (!window.tokenMonitor.setTrayIcons) return;
   const deliveryId = trayProviderIconDeliveryGuard.begin();
   const sources = window.TokenMonitorTrayProviderIcons.trayProviderIconSources(trayIconProviderIds);
-  sources.app = '../../../assets/icons/tray-token-monitor.png';
+  sources.app = '../../../assets/icons/tray-meter.png';
   const icons = {};
   for (const [id, path] of Object.entries(sources)) {
     try {

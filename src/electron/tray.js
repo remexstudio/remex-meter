@@ -22,7 +22,7 @@ const ICON_PATH = path.join(__dirname, '..', '..', 'assets', 'icon.png');
 // as much as at 150% (18px in 24px). icon-win.png is the full-bleed variant
 // electron-builder already ships to the Windows installer.
 const WINDOWS_ICON_PATH = path.join(__dirname, '..', '..', 'assets', 'icon-win.png');
-const TRAY_ICON_PATH = path.join(__dirname, '..', '..', 'assets', 'icons', 'tray-token-monitor.png');
+const TRAY_ICON_PATH = path.join(__dirname, '..', '..', 'assets', 'icons', 'tray-meter.png');
 
 // Windows keeps the taskbar's theme in SystemUsesLightTheme, separate from the
 // AppsUseLightTheme that drives the app theme. Measured on Windows 11 with
@@ -411,6 +411,26 @@ function buildTrayMenuTemplate(options = {}) {
   ];
 }
 
+// The macOS status item menu (docs/UI.md): the primary click opens the Meter
+// popover, so the secondary menu only carries app-level commands.
+function buildMeterMenuTemplate(options = {}) {
+  const state = options.state || {};
+  const callback = (name) => (typeof options[name] === 'function' ? options[name] : () => {});
+  return [
+    {
+      label: state.refreshing ? 'Refreshing…' : 'Refresh',
+      enabled: !state.refreshing,
+      accelerator: 'Command+R',
+      click: callback('onRefresh')
+    },
+    { type: 'separator' },
+    { label: 'Settings…', accelerator: 'Command+,', click: callback('onOpenSettings') },
+    { label: 'About Remex Meter', click: callback('onAbout') },
+    { type: 'separator' },
+    { label: 'Quit Remex Meter', accelerator: 'Command+Q', click: callback('onQuit') }
+  ];
+}
+
 async function runTrayMenuAction({ setInFlight, refreshContextMenu, action }) {
   setInFlight(true);
   try {
@@ -424,7 +444,9 @@ async function runTrayMenuAction({ setInFlight, refreshContextMenu, action }) {
 
 function createTray({
   electron = require('electron'),
+  buildMenuTemplate = buildTrayMenuTemplate,
   getMenuState,
+  onAbout,
   onOpenSettings,
   onOpenView,
   onQuit,
@@ -442,9 +464,10 @@ function createTray({
   tray.setToolTip('Meter');
 
   const menuState = () => (typeof getMenuState === 'function' ? getMenuState() : {});
-  const buildMenu = (state = menuState()) => Menu.buildFromTemplate(buildTrayMenuTemplate({
+  const buildMenu = (state = menuState()) => Menu.buildFromTemplate(buildMenuTemplate({
     state,
     platform,
+    onAbout,
     onOpenSettings,
     onOpenView,
     onQuit,
@@ -588,6 +611,7 @@ function popoverBounds(tray, popoverWidth, popoverHeight, options = {}) {
 module.exports = {
   SYSTEM_UI_THEME_CONFIRM_MS,
   SYSTEM_UI_THEME_SETTLE_MS,
+  buildMeterMenuTemplate,
   buildTrayIcon,
   buildTrayMenuTemplate,
   createTray,
