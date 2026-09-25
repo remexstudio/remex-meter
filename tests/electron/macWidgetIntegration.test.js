@@ -522,8 +522,8 @@ test('keeps Widget packaging opt-in and injects artifacts only after a successfu
   assert.match(packageJson.scripts['pack'], /electron-builder --config scripts\/electron-builder\.config\.js/);
   assert.match(packageJson.scripts['dist:mac:widget'], /TOKEN_MONITOR_WIDGET_DISTRIBUTION=1 TOKEN_MONITOR_WIDGET_ARCH=arm64 node scripts\/macos-packaging\.js/);
   assert.match(packageJson.scripts['dist:mac:widget'], /TOKEN_MONITOR_WIDGET_ENABLED=1 TOKEN_MONITOR_WIDGET_DISTRIBUTION=1 TOKEN_MONITOR_WIDGET_ARCH=arm64 electron-builder/);
-  assert.match(packageJson.scripts['dist:mac:widget:x64'], /TOKEN_MONITOR_WIDGET_ARCH=x64/);
-  assert.match(packageJson.scripts['pack:mac:widget:x64'], /--mac --x64 --dir/);
+  assert.equal(packageJson.scripts['dist:mac:widget:x64'], undefined);
+  assert.equal(packageJson.scripts['pack:mac:widget:x64'], undefined);
   assert.equal(packageJson.build.mac.minimumSystemVersion, MAC_APP_MIN_VERSION);
   assert.match(widgetProject, new RegExp(`MACOSX_DEPLOYMENT_TARGET = ${MAC_WIDGET_MIN_VERSION.replace('.', '\\.')}\\;`));
 });
@@ -1051,9 +1051,7 @@ test('Medium and Large activity cells share App Intent selection state', () => {
   assert.doesNotMatch(widgetIntentSource, /selectedPeriod|selectedPage|lastConfiguredPage/);
 })
 
-test('macOS Widget integration leaves non-macOS packaging sections unchanged', () => {
-  assert.ok(packageJson.build.win);
-  assert.ok(packageJson.build.linux);
-  assert.equal(packageJson.build.win.extraFiles, undefined);
-  assert.equal(packageJson.build.linux.extraFiles, undefined);
+test('there are no non-macOS packaging sections for the Widget to touch', () => {
+  assert.equal(packageJson.build.win, undefined);
+  assert.equal(packageJson.build.linux, undefined);
 });

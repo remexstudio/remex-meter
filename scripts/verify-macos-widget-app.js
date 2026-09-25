@@ -268,7 +268,7 @@ function verifyMacWidgetApp({
   const config = JSON.parse(fs.readFileSync(paths.configPath, 'utf8'));
   const expectedArch = targetArch === 'x64' ? 'x86_64' : targetArch;
   if (!['arm64', 'x86_64'].includes(expectedArch)) fail(`unsupported verification architecture ${targetArch}`);
-  exactArchitectures(path.join(paths.contents, 'MacOS', appInfo.CFBundleExecutable || 'Token Monitor'), expectedArch, spawnSyncImpl);
+  exactArchitectures(path.join(paths.contents, 'MacOS', appInfo.CFBundleExecutable || 'Remex Meter'), expectedArch, spawnSyncImpl);
   exactArchitectures(paths.extensionExecutable, expectedArch, spawnSyncImpl);
   exactArchitectures(paths.reloader, expectedArch, spawnSyncImpl);
 
