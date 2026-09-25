@@ -1,0 +1,18 @@
+Remex Meter
+Copyright (c) 2026 Remex Studio
+
+This product includes software adapted from Token Monitor
+(https://github.com/Javis603/token-monitor), Copyright (c) 2026 Javis,
+licensed under the MIT License. The full license text is in LICENSE.
+
+The data plane of Remex Meter (tokscale collector, limits runtime, provider
+registry, Hub, Worker, and the native macOS WidgetKit extension) is adapted
+from Javis603/token-monitor. The upstream commit history is preserved in this
+repository; see docs/UPSTREAM.md for the imported revision and the boundaries
+Remex Meter relies on.
+
+"Token Monitor" is the name of the upstream project and is used here for
+attribution only. It is not the name of this product.
+
+Vendored agent skills under .agents/skills/ retain the licenses and notices of
+their upstream repositories; see .agents/skills/VENDORED.md.
