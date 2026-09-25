@@ -30,7 +30,7 @@ Six tools are enabled in v1, in this default order:
 | 5 | OpenCode | yes | yes |
 | 6 | DeepSeek | yes | yes (account balance) |
 
-The order is the fresh-install order; a user's saved order is never overwritten. Tool ids and data sources are in `docs/PROVIDERS.md`. The inherited upstream supports many more tools; they are disabled in Phase 1, not deleted in Phase 0.
+The order is the fresh-install order; a user's saved order is never overwritten. Tool ids and data sources are in `docs/PROVIDERS.md`. The inherited upstream supports many more tools; they stay wired but are off by default, and can be ticked in Settings.
 
 ## What the user sees
 

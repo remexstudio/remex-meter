@@ -2,7 +2,7 @@
 
 A local-first macOS menu-bar meter for AI coding tool usage, cost and plan limits. Built by Remex Studio.
 
-> **Status: Phase 0 (baseline).** This repository currently contains the imported upstream data plane and the product documents. The app still builds and behaves as the upstream project until Phase 1 lands ([issue #3](https://github.com/remexstudio/remex-meter/issues/3)).
+> **Status: Phase 1.** The app builds as Remex Meter (`studio.remex.meter`, macOS Apple Silicon) with the six tools and the native Meter popover. Separate Cursor and Grok pool modules are Phase 2 ([issue #4](https://github.com/remexstudio/remex-meter/issues/4)).
 
 ## What it is
 
