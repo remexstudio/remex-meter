@@ -1,0 +1,40 @@
+name: __MODULE_NAME__
+options:
+  bundleIdPrefix: __BUNDLE_PREFIX__
+  createIntermediateGroups: true
+  deploymentTarget:
+    macOS: "__MINIMUM_MACOS__"
+settings:
+  base:
+    SWIFT_VERSION: 6.0
+    MACOSX_DEPLOYMENT_TARGET: "__MINIMUM_MACOS__"
+packages: {}
+targets:
+  __MODULE_NAME__:
+    type: application
+    platform: macOS
+    deploymentTarget: "__MINIMUM_MACOS__"
+    sources:
+      - path: Sources/__MODULE_NAME__
+      - path: Docs
+        optional: true
+    entitlements:
+      path: Entitlements/__MODULE_NAME__.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: __BUNDLE_ID__
+        PRODUCT_NAME: __APP_NAME__
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_STYLE: Automatic
+    scheme:
+      testTargets:
+        - __MODULE_NAME__Tests
+  __MODULE_NAME__Tests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "__MINIMUM_MACOS__"
+    sources:
+      - path: Tests/__MODULE_NAME__Tests
+    dependencies:
+      - target: __MODULE_NAME__

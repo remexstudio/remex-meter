@@ -1,6 +1,6 @@
 # UI
 
-Remex Meter is a native macOS menu-bar utility. Before changing any surface below, load the skills required by `AGENTS.md` (`apple-menubar-monitor`, `macos-design`; `apple-design` for audits). The skill holds implementation detail, the SF Symbols map and the PR checklist; this page defines the surfaces.
+Remex Meter is a native macOS menu-bar utility. Before changing any surface below, load the skills required by `AGENTS.md` (`apple-menubar-monitor`, `macos-menubar-app-development`, `macos-design`, `macos-gui-app-design`; `apple-design` for audits). The skill holds implementation detail, the SF Symbols map and the PR checklist; this page defines the surfaces.
 
 ## Surfaces
 

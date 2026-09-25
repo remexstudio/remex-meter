@@ -8,11 +8,12 @@ The Remex Meter rules below come first. The engineering guide after them is inhe
 
 Load these from `.agents/skills/` **before** any change to the menu bar extra, the tray popover, quota modules, native materials/vibrancy, settings UI, app icons, SF Symbols or the Swift widget:
 
-1. `apple-menubar-monitor` — Remex Meter's house guide for the menu bar, popover, pools, symbols and accessibility.
-2. `macos-design` — native macOS layout, interaction and visual design.
-3. `macos-menubar-app-development` — **currently blocked and not vendored** because of its license (see `.agents/skills/macos-menubar-app-development/BLOCKED.md` and [issue #2](https://github.com/remexstudio/remex-meter/issues/2)). Do not fetch or install it into this repository. Until the issue is resolved, items 1 and 2 are the required set.
+1. `apple-menubar-monitor` — Remex Meter's house guide for the menu bar, popover, pools, symbols and accessibility. It wins where the skills below disagree about this product.
+2. `macos-menubar-app-development` — status item, popover, `LSUIElement`, Settings/Quit paths and menu-bar icon rules.
+3. `macos-design` — native macOS layout, interaction and visual design.
+4. `macos-gui-app-design` — Mac GUI conventions, materials, accessibility and distribution checks.
 
-Load `apple-design` as well for design reviews and accessibility audits. `macos-gui-app-design` is blocked for the same reason as item 3. Vendored skill pins and license status are in `.agents/skills/VENDORED.md`; never hand-edit vendored skill files.
+Load `apple-design` as well for design reviews and accessibility audits. The two Swift-oriented skills (items 2 and 4) describe native starters; in this repository apply their rules to the Electron shell and never add a second Swift status item (see `apple-menubar-monitor`). Vendored skill pins and license status are in `.agents/skills/VENDORED.md`; the owner waived the license restrictions on items 2 and 4 in [issue #2](https://github.com/remexstudio/remex-meter/issues/2). Never hand-edit vendored skill files.
 
 ## Names
 

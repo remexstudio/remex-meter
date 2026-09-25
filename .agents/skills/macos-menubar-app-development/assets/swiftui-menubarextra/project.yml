@@ -1,0 +1,25 @@
+name: __APP_NAME__
+
+options:
+  createIntermediateGroups: true
+  deploymentTarget:
+    macOS: "__MIN_MACOS__"
+
+settings:
+  base:
+    GENERATE_INFOPLIST_FILE: NO
+
+targets:
+  __APP_NAME__:
+    type: application
+    platform: macOS
+    sources:
+      - App
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: __BUNDLE_ID__
+        SWIFT_VERSION: 6.0
+        MACOSX_DEPLOYMENT_TARGET: "__MIN_MACOS__"
+        INFOPLIST_FILE: Config/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Config/App.entitlements
+        ENABLE_HARDENED_RUNTIME: YES

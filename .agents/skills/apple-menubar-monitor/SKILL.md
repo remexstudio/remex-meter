@@ -5,7 +5,7 @@ description: Remex Meter's menu-bar utility guidance. Use before any change to t
 
 # Apple menu-bar monitor (Remex Meter)
 
-Remex Meter is a native-feeling macOS menu-bar utility for AI coding tool usage and plan limits. It is not a dashboard, not a card grid, and not a marketing surface. This skill is the house guide for its menu-bar, popover and widget surfaces. Load it together with `macos-design` (and `apple-design` for audits); `AGENTS.md` lists the required set.
+Remex Meter is a native-feeling macOS menu-bar utility for AI coding tool usage and plan limits. It is not a dashboard, not a card grid, and not a marketing surface. This skill is the house guide for its menu-bar, popover and widget surfaces. Load it together with `macos-menubar-app-development`, `macos-design` and `macos-gui-app-design` (and `apple-design` for audits); `AGENTS.md` lists the required set. Where those generic skills disagree with this one about Remex Meter, this one wins.
 
 Read `docs/PRODUCT.md`, `docs/POOLS.md` and `docs/UI.md` before designing anything. Data contracts live in `docs/UPSTREAM.md` and `docs/PROVIDERS.md`; this skill never overrides them.
 
@@ -99,7 +99,7 @@ Electron cannot load SF Symbols by name (`nativeImage.createFromNamedImage` reso
 
 Copy into the PR description and tick each item.
 
-- [ ] Loaded `apple-menubar-monitor` and `macos-design` (and `apple-design` for audits) before the change.
+- [ ] Loaded `apple-menubar-monitor`, `macos-menubar-app-development`, `macos-design` and `macos-gui-app-design` (and `apple-design` for audits) before the change.
 - [ ] Modules and order come from the catalogs; no provider-specific markup added.
 - [ ] Pools stay separate: Cursor Mode Pool vs Cursor Other Modes, Grok Heavy Weekly vs Grok Bolt Weekly. No summed or synthesized bar.
 - [ ] Unavailable, not-configured and unauthorized states render as text, never as `0%` or an empty bar.
