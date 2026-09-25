@@ -50,7 +50,15 @@
     if (usage.state !== 'ok') return 'Waiting for usage';
     const tokens = `${compactTokens.formatCompactTokens(usage.tokens, 'western', 'en')} tokens`;
     if (usage.costUsd === null) return `${tokens} today`;
-    return `${tokens} · ${currency.formatCurrencyFromUsd(usage.costUsd, state.settings.currency)} today`;
+    return `${tokens} · ${costText(usage.costUsd)} today`;
+  }
+
+  function costText(costUsd) {
+    const code = currency.normalizeCurrency(state.settings.currency);
+    const amount = currency.convertUsd(costUsd, code);
+    const symbol = currency.CURRENCY_RATES[code].symbol;
+    if (amount > 0 && amount < 0.01) return `<${symbol}0.01`;
+    return `${symbol}${amount.toFixed(2)}`;
   }
 
   function markNode(mark) {
