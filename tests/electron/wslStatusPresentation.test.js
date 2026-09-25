@@ -44,6 +44,6 @@ test('renderer loads WSL status presentation before app.js', () => {
 
 test('WSL SQLite advisory links to the allowlisted repository guide', () => {
   const app = fs.readFileSync(path.join(__dirname, '../../src/electron/renderer/app.js'), 'utf8');
-  assert.match(app, /TOKEN_MONITOR_WSL_SQLITE_GUIDE_URL = `\$\{TOKEN_MONITOR_REPOSITORY_URL\}\/blob\/main\/docs\/wsl-sqlite-setup\.md`/);
-  assert.match(app, /shouldShowSqliteHelp\(status\)[\s\S]*settings\.collection\.wslPanel\.sqliteHelp[\s\S]*TOKEN_MONITOR_WSL_SQLITE_GUIDE_URL/);
+  assert.match(app, /PRODUCT_WSL_SQLITE_GUIDE_URL = `\$\{PRODUCT_REPOSITORY_URL\}\/blob\/main\/docs\/wsl-sqlite-setup\.md`/);
+  assert.match(app, /shouldShowSqliteHelp\(status\)[\s\S]*settings\.collection\.wslPanel\.sqliteHelp[\s\S]*PRODUCT_WSL_SQLITE_GUIDE_URL/);
 });

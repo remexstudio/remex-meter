@@ -24,41 +24,39 @@
   if (root) root.TokenMonitorClientCatalog = api;
 })(typeof window !== 'undefined' ? window : null, function createClientCatalogApi() {
   // Order here IS the display order, shared by the settings list, the renderer
-  // and the README table (tests/shared/clientTracking.test.js enforces that).
+  // and the Meter popover.
   //
-  // `defaultTracked: false` keeps a client wired and selectable but off on a
-  // fresh install. qodercn is opt-in per the upstream tool-support boundary — a
-  // local adapter that may break when Qoder changes its DB schema.
+  // Remex Meter enables six tools, and they lead the list in the product's
+  // default order (docs/PRODUCT.md). Every other inherited adapter stays wired
+  // and selectable in Settings but is `defaultTracked: false`, so a fresh
+  // install scans only the six. Saved selections are never rewritten.
   //
-  // mimo (MiMo) ships default-tracked even though mimocode.db auto-imports
-  // Claude Code sessions (its claude-import service): tokscale parses the store
-  // but does not dedup those imports, and the imported rows aren't cleanly
-  // separable (MiMo is multi-model), so a MiMo user's Claude work is counted
-  // under both `claude` and `mimo`. That overlap is accepted rather than fixed
-  // here — discovering the tool at all was judged to matter more than the
-  // inflation, and anyone affected can untick it in Settings → tools. Only a
-  // fresh install is affected; saved selections are untouched. Revisit if
-  // tokscale ever marks claude-import sessions.
+  // mimo (MiMo) imports Claude Code sessions into mimocode.db and tokscale does
+  // not dedup those imports, so tracking both counts that work twice. It is off
+  // by default like the other inherited adapters.
   //
   // `locallyParsed: true` means the client is excluded from the tokscale client
   // filter and read by a local adapter instead (collector.js). This is an axis
   // of its own, not a collection "mode": self-synced clients (cursor,
   // antigravity) still go through tokscale and are tracked separately in
   // collector.js.
-  const CLIENT_CATALOG = Object.freeze([
+  const ENABLED_CLIENTS = [
+    { id: 'cursor', label: 'Cursor' },
+    { id: 'grok', label: 'Grok' },
     { id: 'claude', label: 'Claude Code' },
     { id: 'codex', label: 'Codex' },
     { id: 'opencode', label: 'OpenCode' },
+    { id: 'dsh', label: 'DeepSeek' }
+  ];
+  const INHERITED_CLIENTS = [
     { id: 'hermes', label: 'Hermes Agent' },
     { id: 'openclaw', label: 'OpenClaw' },
-    { id: 'cursor', label: 'Cursor' },
     { id: 'antigravity', label: 'Antigravity' },
     { id: 'cline', label: 'Cline' },
     { id: 'amp', label: 'Amp' },
     { id: 'droid', label: 'Factory Droid' },
     { id: 'kimi', label: 'Kimi' },
     { id: 'qwen', label: 'Qwen' },
-    { id: 'grok', label: 'Grok Build' },
     { id: 'copilot', label: 'GitHub Copilot' },
     { id: 'pi', label: 'Pi' },
     // Oh My Pi was folded into the `pi` row until the two products were split
@@ -75,13 +73,16 @@
     { id: 'codebuddy', label: 'CodeBuddy' },
     { id: 'workbuddy', label: 'WorkBuddy' },
     { id: 'proma', label: 'Proma', locallyParsed: true },
-    { id: 'qodercn', label: 'Qoder CN', defaultTracked: false, locallyParsed: true },
+    { id: 'qodercn', label: 'Qoder CN', locallyParsed: true },
     { id: 'reasonix', label: 'Reasonix' },
-    { id: 'dsh', label: 'DeepSeek Harness' },
     { id: 'cherrystudio', label: 'Cherry Studio' },
     { id: 'lmstudio', label: 'LM Studio' },
     { id: 'unsloth', label: 'Unsloth' },
     { id: 'devin', label: 'Devin' }
+  ].map((client) => ({ ...client, defaultTracked: false }));
+  const CLIENT_CATALOG = Object.freeze([
+    ...ENABLED_CLIENTS,
+    ...INHERITED_CLIENTS
   ].map((client) => Object.freeze({
     defaultTracked: true,
     locallyParsed: false,

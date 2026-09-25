@@ -213,6 +213,9 @@ contextBridge.exposeInMainWorld('tokenMonitor', {
       return () => ipcRenderer.removeListener('copilot:loginStatus', handler);
     }
   },
+  openSettings: () => ipcRenderer.send('settings:open'),
+  quit: () => ipcRenderer.send('app:quit'),
+  setPreferredHeight: (height) => ipcRenderer.send('window:preferredHeight', Number(height) || 0),
   minimize: () => ipcRenderer.send('window:minimize'),
   close: () => ipcRenderer.send('window:close')
 });

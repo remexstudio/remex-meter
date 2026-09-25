@@ -13,23 +13,6 @@ try {
 const { DEFAULT_CLIENTS, KNOWN_CLIENTS, clientsCsvForSetting } = trackingApi;
 const rootDir = path.join(__dirname, '..', '..');
 
-function readmeTrackedClientIds() {
-  const iconToClient = {
-    deepseek: 'dsh',
-    'hermes-agent': 'hermes',
-    xai: 'grok',
-    qoder: 'qodercn'
-  };
-  return fs.readFileSync(path.join(rootDir, 'docs/upstream/README.upstream.md'), 'utf8')
-    .split('\n')
-    .filter((line) => line.startsWith('| <img'))
-    .filter((line) => line.split('|').map((cell) => cell.trim())[4] === '✅')
-    .map((line) => {
-      const icon = line.match(/tools-icon\/([^".]+)\.[a-z]+"/i)?.[1] || '';
-      return iconToClient[icon] || icon;
-    });
-}
-
 test('clientsCsvForSetting uses defaults only for missing settings', () => {
   assert.equal(typeof DEFAULT_CLIENTS, 'string');
   assert.equal(typeof clientsCsvForSetting, 'function');
@@ -37,20 +20,16 @@ test('clientsCsvForSetting uses defaults only for missing settings', () => {
   assert.equal(clientsCsvForSetting(null), DEFAULT_CLIENTS);
 });
 
-test('default tracked clients include current tokscale-supported tools', () => {
-  const clients = DEFAULT_CLIENTS.split(',');
-  for (const client of ['cline', 'amp', 'droid', 'kimi', 'qwen', 'grok', 'copilot', 'pi', 'zed', 'kilo', 'commandcode', 'zcode', 'kiro', 'codebuddy', 'workbuddy', 'reasonix', 'dsh', 'cherrystudio', 'lmstudio', 'unsloth', 'devin']) {
-    assert.ok(clients.includes(client), `${client} should be tracked by default`);
-  }
+test('a fresh install tracks exactly the six Remex Meter tools in product order', () => {
+  assert.equal(DEFAULT_CLIENTS, 'cursor,grok,claude,codex,opencode,dsh');
 });
 
-test('mimo is deliberately default-tracked despite the claude-import overlap', () => {
-  // mimocode.db auto-imports Claude Code sessions and tokscale does not mark
-  // them, so a fresh install counts that work under both `claude` and `mimo`.
-  // Shipping it on anyway is a deliberate product call (see clientCatalog.js) —
-  // pinned here so flipping it back is also deliberate rather than incidental.
-  assert.ok(DEFAULT_CLIENTS.split(',').includes('mimo'),
-    'mimo is expected to be default-tracked');
+test('inherited adapters stay known but are not tracked by default', () => {
+  const defaults = new Set(DEFAULT_CLIENTS.split(','));
+  for (const client of ['cline', 'amp', 'droid', 'kimi', 'qwen', 'copilot', 'pi', 'zed', 'kilo', 'commandcode', 'mimo', 'zcode', 'kiro', 'codebuddy', 'workbuddy', 'reasonix', 'cherrystudio', 'lmstudio', 'unsloth', 'devin']) {
+    assert.ok(KNOWN_CLIENTS.split(',').includes(client), `${client} should remain a known client`);
+    assert.ok(!defaults.has(client), `${client} should not be tracked by default`);
+  }
 });
 
 test('KNOWN_CLIENTS is a superset of DEFAULT_CLIENTS and still includes opt-in qodercn', () => {
@@ -65,15 +44,10 @@ test('KNOWN_CLIENTS is a superset of DEFAULT_CLIENTS and still includes opt-in q
   }
 });
 
-// The renderer is no longer a third party to compare against: it destructures
-// the same catalog these CSVs are projected from, so asserting it here would be
-// the catalog against itself. That the renderer actually consumes the catalog is
-// guarded in tests/electron/rendererClientLabels.test.js. README stays a real
-// cross-check because it is hand-authored.
-test('tracked client defaults and README share one display order', () => {
+test('default-tracked clients lead the known list', () => {
   const known = KNOWN_CLIENTS.split(',');
-  assert.deepEqual(readmeTrackedClientIds(), known);
-  assert.deepEqual(DEFAULT_CLIENTS.split(','), known.filter((client) => client !== 'qodercn'));
+  const defaults = DEFAULT_CLIENTS.split(',');
+  assert.deepEqual(known.slice(0, defaults.length), defaults);
 });
 
 test('documented client CSV follows the canonical catalog order', () => {

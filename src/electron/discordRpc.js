@@ -5,17 +5,17 @@ const { formatCurrencyFromUsd, normalizeCurrency } = require('../shared/currency
 const compactTokens = require('../shared/compactTokens');
 
 const CLIENT_ID = '1507034330436862062';
-const GITHUB_URL = 'https://github.com/Javis603/token-monitor';
+const GITHUB_URL = 'https://github.com/remexstudio/remex-meter';
 const KNOWN_CLIENT_ASSETS = new Set([
-  'claude', 'codex', 'opencode', 'hermes', 'openclaw', 'cursor', 'antigravity', 'cline',
-  'amp', 'droid', 'kimi', 'qwen', 'grok', 'copilot', 'pi', 'omp', 'zed', 'kilo', 'commandcode', 'mimo', 'zcode', 'kiro', 'codebuddy', 'workbuddy', 'proma', 'qodercn', 'reasonix', 'dsh', 'cherrystudio', 'lmstudio', 'unsloth', 'devin',
+  'cursor', 'grok', 'claude', 'codex', 'opencode', 'dsh',
+  'hermes', 'openclaw', 'antigravity', 'cline', 'amp', 'droid', 'kimi', 'qwen', 'copilot', 'pi', 'omp', 'zed', 'kilo', 'commandcode', 'mimo', 'zcode', 'kiro', 'codebuddy', 'workbuddy', 'proma', 'qodercn', 'reasonix', 'cherrystudio', 'lmstudio', 'unsloth', 'devin',
   'gemini'
 ]);
 const CLIENT_LABELS = {
-  claude: 'Claude', codex: 'Codex', opencode: 'OpenCode', hermes: 'Hermes Agent',
-  openclaw: 'OpenClaw', cursor: 'Cursor', antigravity: 'Antigravity', cline: 'Cline',
-  amp: 'Amp', droid: 'Factory Droid', kimi: 'Kimi', qwen: 'Qwen', grok: 'Grok Build', copilot: 'GitHub Copilot',
-  pi: 'Pi', omp: 'Oh My Pi', zed: 'Zed', kilo: 'Kilo', commandcode: 'Command Code', mimo: 'Xiaomi MiMo', zcode: 'ZCode', kiro: 'Kiro', codebuddy: 'CodeBuddy', workbuddy: 'WorkBuddy', proma: 'Proma', qodercn: 'Qoder CN', reasonix: 'Reasonix', dsh: 'DeepSeek Harness', cherrystudio: 'Cherry Studio', lmstudio: 'LM Studio', unsloth: 'Unsloth', devin: 'Devin',
+  cursor: 'Cursor', grok: 'Grok', claude: 'Claude', codex: 'Codex', opencode: 'OpenCode', dsh: 'DeepSeek',
+  hermes: 'Hermes Agent', openclaw: 'OpenClaw', antigravity: 'Antigravity', cline: 'Cline',
+  amp: 'Amp', droid: 'Factory Droid', kimi: 'Kimi', qwen: 'Qwen', copilot: 'GitHub Copilot',
+  pi: 'Pi', omp: 'Oh My Pi', zed: 'Zed', kilo: 'Kilo', commandcode: 'Command Code', mimo: 'Xiaomi MiMo', zcode: 'ZCode', kiro: 'Kiro', codebuddy: 'CodeBuddy', workbuddy: 'WorkBuddy', proma: 'Proma', qodercn: 'Qoder CN', reasonix: 'Reasonix', cherrystudio: 'Cherry Studio', lmstudio: 'LM Studio', unsloth: 'Unsloth', devin: 'Devin',
   gemini: 'Gemini'
 };
 const UPDATE_MIN_INTERVAL_MS = 15000;
@@ -52,12 +52,12 @@ function buildPayload(stats, currency = 'USD', compactTokenUnits = 'western', lo
   const base = {
     type: 0,
     largeImageKey: 'logo',
-    largeImageText: 'Token Monitor',
+    largeImageText: 'Remex Meter',
     startTimestamp,
     buttons: [{ label: 'View on GitHub', url: GITHUB_URL }]
   };
   if (totalTokens === 0) {
-    return { ...base, details: 'Token Monitor', state: 'No usage today' };
+    return { ...base, details: 'Remex Meter', state: 'No usage today' };
   }
   const top = topClient(today);
   const label = (top && CLIENT_LABELS[top]) || (top ? top : 'Active');

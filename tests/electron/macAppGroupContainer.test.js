@@ -8,7 +8,7 @@ const {
   resolveMacAppGroupContainerPath
 } = require('../../src/electron/macWidget/macAppGroupContainer');
 
-function fakeKoffi({ containerUrl = 31n, containerPath = '/Users/example/Library/Group Containers/group.com.example.tokenmonitor' } = {}) {
+function fakeKoffi({ containerUrl = 31n, containerPath = '/Users/example/Library/Group Containers/group.studio.remex.meter' } = {}) {
   const selectors = new Map([
     ['defaultManager', 11n],
     ['stringWithUTF8String:', 12n],
@@ -61,12 +61,12 @@ test('Foundation bridge resolves an App Group through NSFileManager', () => {
   const koffi = fakeKoffi();
   const api = createMacAppGroupApi(koffi);
   assert.equal(
-    api.containerPath('group.com.example.tokenmonitor'),
-    '/Users/example/Library/Group Containers/group.com.example.tokenmonitor'
+    api.containerPath('group.studio.remex.meter'),
+    '/Users/example/Library/Group Containers/group.studio.remex.meter'
   );
   assert.deepEqual(koffi.calls, [
     { receiver: 21n, selector: 11n },
-    { receiver: 22n, selector: 12n, value: 'group.com.example.tokenmonitor' },
+    { receiver: 22n, selector: 12n, value: 'group.studio.remex.meter' },
     { receiver: 23n, selector: 13n, value: 24n },
     { receiver: 31n, selector: 14n }
   ]);

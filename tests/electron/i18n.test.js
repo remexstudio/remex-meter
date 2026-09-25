@@ -134,11 +134,13 @@ test('Hub deployment copy describes the whole build instead of only its shared c
   );
   assert.equal(
     translate('en', 'settings.sync.hubBuild.remoteNewer', { target: 'Worker' }),
-    'This Worker was deployed by a newer version of Token Monitor'
+    'This Worker was deployed by a newer version of Remex Meter'
   );
   assert.equal(
     translate('zh-TW', 'settings.sync.hubBuild.remoteNewer', { target: 'Worker' }),
-    '此 Worker 由較新的 Token Monitor 版本部署'
+    MESSAGES['zh-TW']['settings.sync.hubBuild.remoteNewer']
+      .replace('{target}', 'Worker')
+      .replace('Token Monitor', 'Remex Meter')
   );
   for (const locale of Object.keys(MESSAGES)) {
     assert.doesNotMatch(MESSAGES[locale]['settings.sync.hubBuild.current'], /core|核心|코어|コア/i, locale);
@@ -149,7 +151,7 @@ test('Hub deployment copy describes the whole build instead of only its shared c
       /redeploy|重新部署|재배포|再デプロイ/i,
       locale
     );
-    assert.match(MESSAGES[locale]['settings.sync.hubBuild.remoteNewer'], /Token Monitor/, locale);
+    assert.match(translate(locale, 'settings.sync.hubBuild.remoteNewer'), /Remex Meter/, locale);
   }
 });
 

@@ -32,9 +32,9 @@ test('minimaxToken reads the CodexBar-compatible Token Plan key and ignores unre
   assert.equal(minimaxToken({}, '  "sk-cp-direct"  '), 'sk-cp-direct');
 });
 
-test('parseLimitProviders includes minimax and grok in the default provider set', () => {
+test('parseLimitProviders includes grok but not minimax in the default provider set', () => {
   const providers = parseLimitProviders();
-  assert.ok(providers.includes('minimax'));
+  assert.ok(!providers.includes('minimax'));
   assert.ok(providers.includes('grok'));
 });
 

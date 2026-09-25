@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Remex Meter</title>
+    <link rel="stylesheet" href="popover.css" />
+  </head>
+  <body>
+    <main id="popover" class="popover" role="dialog" aria-labelledby="popoverTitle" aria-describedby="updatedText" tabindex="-1">
+      <header class="popover-header">
+        <div class="popover-heading">
+          <h1 id="popoverTitle" class="popover-title">Remex Meter</h1>
+          <p id="updatedText" class="secondary-text" aria-live="polite">Waiting for first scan</p>
+        </div>
+        <button id="refreshButton" class="icon-button" type="button" aria-label="Refresh" title="Refresh (⌘R)">
+          <svg class="symbol" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.2 8a5.2 5.2 0 1 1-1.52-3.68" /><path d="M12.2 1.9v2.9H9.3" /></svg>
+        </button>
+      </header>
+      <div id="modules" class="modules" role="list" aria-label="Tools"></div>
+      <footer class="popover-footer">
+        <button id="settingsButton" class="footer-button" type="button">
+          <span>Settings…</span><kbd class="shortcut">⌘,</kbd>
+        </button>
+        <button id="quitButton" class="footer-button" type="button">
+          <span>Quit Remex Meter</span><kbd class="shortcut">⌘Q</kbd>
+        </button>
+      </footer>
+    </main>
+    <template id="stateSymbols">
+      <svg data-symbol="unavailable" class="symbol" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2 14.3 13.3H1.7Z" /><path d="M8 6.4v3.2" /><path d="M8 11.4v.2" /></svg>
+      <svg data-symbol="signIn" class="symbol" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="5.6" r="2.6" /><path d="M2.2 13.6c.6-2.5 2.5-3.8 4.8-3.8 1 0 1.9.2 2.6.7" /><path d="M13 9.4v2.4" /><path d="M13 13.6v.2" /></svg>
+      <svg data-symbol="notConfigured" class="symbol" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.8" /><path d="M5.2 8h5.6" /></svg>
+      <svg data-symbol="off" class="symbol" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.8" /><path d="M4 12 12 4" /></svg>
+      <svg data-symbol="pending" class="symbol" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.8" /><path d="M8 4.8V8l2.2 1.4" /></svg>
+      <svg data-symbol="stale" class="symbol" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.6 8a5.4 5.4 0 1 0 1.6-3.8" /><path d="M2.4 2.2v2.6H5" /><path d="M8 5.2V8l2 1.2" /></svg>
+    </template>
+    <script src="../../../shared/clientCatalog.js"></script>
+    <script src="../../../shared/limits/providers.js"></script>
+    <script src="../../../shared/compactTokens.js"></script>
+    <script src="../../../shared/currency.js"></script>
+    <script src="../../../shared/limits/balanceDisplay.js"></script>
+    <script src="../../../shared/limits/windowLabels.js"></script>
+    <script src="../../../shared/vendorPresentation.js"></script>
+    <script src="popoverModel.js"></script>
+    <script src="popover.js"></script>
+  </body>
+</html>

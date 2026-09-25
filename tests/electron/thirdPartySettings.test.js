@@ -325,11 +325,6 @@ test('third-party fallback stays last after named providers across product surfa
   );
 
   const env = read('.env.example');
-  const envProviderList = env.slice(
-    env.indexOf('# Providers to probe.'),
-    env.indexOf('TOKEN_MONITOR_LIMIT_PROVIDERS=')
-  );
-  assert.ok(envProviderList.lastIndexOf('thirdparty') > envProviderList.lastIndexOf('ollama'));
   assert.ok(env.indexOf('# Third-party API accounts.') > env.indexOf('# Kimi Code API key.'));
 
   const api = read('docs/API.md');

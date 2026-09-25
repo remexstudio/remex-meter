@@ -32,38 +32,47 @@
   // subscriptionProviderLabel(). It is not scoped to one list — adding one
   // renames the provider on all of them at once. Surfaces that name a live
   // quota rather than a configured tool keep `label`, as the tray detail does.
+  //
+  // Remex Meter enables six providers on a fresh install, leading the list in
+  // the product's default order. The rest stay wired and selectable in
+  // Settings with `defaultEnabled: false`.
   const LIMIT_PROVIDER_CATALOG = Object.freeze([
+    { id: 'cursor', label: 'Cursor' },
+    { id: 'grok', label: 'Grok' },
     { id: 'claude', label: 'Claude', settingsLabel: 'Claude Code' },
     { id: 'codex', label: 'Codex' },
     { id: 'opencode', label: 'OpenCode' },
-    { id: 'cursor', label: 'Cursor' },
-    { id: 'antigravity', label: 'Antigravity' },
-    { id: 'cline', label: 'Cline' },
-    { id: 'factory', label: 'Factory Droid' },
-    { id: 'kimi', label: 'Kimi' },
-    { id: 'grok', label: 'Grok' },
-    { id: 'copilot', label: 'GitHub Copilot' },
-    { id: 'zed', label: 'Zed' },
-    { id: 'commandcode', label: 'Command Code' },
-    { id: 'mimo', label: 'Xiaomi MiMo' },
-    { id: 'zai', label: 'GLM', settingsLabel: 'Z.ai / GLM' },
-    { id: 'zaiteam', label: 'GLM Team' },
-    { id: 'kiro', label: 'Kiro' },
-    { id: 'workbuddy', label: 'WorkBuddy' },
-    { id: 'qoder', label: 'Qoder' },
     { id: 'deepseek', label: 'DeepSeek' },
-    { id: 'devin', label: 'Devin' },
-    { id: 'typesafe', label: 'TypeSafe' },
-    { id: 'openrouter', label: 'OpenRouter' },
-    { id: 'minimax', label: 'Minimax' },
-    { id: 'volcengine', label: 'Volcengine' },
-    { id: 'ollama', label: 'Ollama' },
-    { id: 'trae', label: 'Trae CN' },
-    { id: 'alibaba', label: 'Alibaba Cloud' },
-    { id: 'thirdparty', label: 'Third-party APIs' }
-  ].map((provider) => Object.freeze({ ...provider })));
+    ...[
+      { id: 'antigravity', label: 'Antigravity' },
+      { id: 'cline', label: 'Cline' },
+      { id: 'factory', label: 'Factory Droid' },
+      { id: 'kimi', label: 'Kimi' },
+      { id: 'copilot', label: 'GitHub Copilot' },
+      { id: 'zed', label: 'Zed' },
+      { id: 'commandcode', label: 'Command Code' },
+      { id: 'mimo', label: 'Xiaomi MiMo' },
+      { id: 'zai', label: 'GLM', settingsLabel: 'Z.ai / GLM' },
+      { id: 'zaiteam', label: 'GLM Team' },
+      { id: 'kiro', label: 'Kiro' },
+      { id: 'workbuddy', label: 'WorkBuddy' },
+      { id: 'qoder', label: 'Qoder' },
+      { id: 'devin', label: 'Devin' },
+      { id: 'typesafe', label: 'TypeSafe' },
+      { id: 'openrouter', label: 'OpenRouter' },
+      { id: 'minimax', label: 'Minimax' },
+      { id: 'volcengine', label: 'Volcengine' },
+      { id: 'ollama', label: 'Ollama' },
+      { id: 'trae', label: 'Trae CN' },
+      { id: 'alibaba', label: 'Alibaba Cloud' },
+      { id: 'thirdparty', label: 'Third-party APIs' }
+    ].map((provider) => ({ ...provider, defaultEnabled: false }))
+  ].map((provider) => Object.freeze({ defaultEnabled: true, ...provider })));
 
   const LIMIT_PROVIDER_IDS = Object.freeze(LIMIT_PROVIDER_CATALOG.map((provider) => provider.id));
+  const DEFAULT_LIMIT_PROVIDER_IDS = Object.freeze(
+    LIMIT_PROVIDER_CATALOG.filter((provider) => provider.defaultEnabled).map((provider) => provider.id)
+  );
   const LIMIT_PROVIDER_LABELS = Object.freeze(Object.fromEntries(
     LIMIT_PROVIDER_CATALOG.map(({ id, label }) => [id, label])
   ));
@@ -114,11 +123,12 @@
       const provider = limitProviderForClient(client);
       if (provider) detectedProviders.add(provider);
     }
-    return LIMIT_PROVIDER_IDS.filter((provider) => detectedProviders.has(provider));
+    return DEFAULT_LIMIT_PROVIDER_IDS.filter((provider) => detectedProviders.has(provider));
   }
 
   return {
     LIMIT_PROVIDER_CATALOG,
+    DEFAULT_LIMIT_PROVIDER_IDS,
     LIMIT_PROVIDER_IDS,
     LIMIT_PROVIDER_LABELS,
     LIMIT_WINDOW_METRICS,

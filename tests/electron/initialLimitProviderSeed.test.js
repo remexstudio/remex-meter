@@ -47,11 +47,11 @@ test('a completed source snapshot persists, reconfigures, and pushes once', () =
     }
   }), true);
 
-  assert.equal(settings.limitProviders, 'claude,cursor');
+  assert.equal(settings.limitProviders, 'cursor,claude');
   assert.deepEqual(events, [
-    'save:claude,cursor',
-    'reconfigure:claude,cursor',
-    'push:claude,cursor'
+    'save:cursor,claude',
+    'reconfigure:cursor,claude',
+    'push:cursor,claude'
   ]);
   assert.equal(pending, false);
   assert.equal(applyInitialLimitProviderSeed(pending, { clientHealth: { clients: {} } }, { settings }), false);

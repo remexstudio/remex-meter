@@ -9,6 +9,7 @@ const path = require('node:path');
 const {
   LIMIT_PROVIDER_CATALOG,
   LIMIT_PROVIDER_IDS,
+  DEFAULT_LIMIT_PROVIDER_IDS,
   LIMIT_PROVIDER_LABELS,
   limitProviderForClient,
   limitProvidersForDetectedClients
@@ -45,11 +46,11 @@ test('initial limit providers follow detected clients in stable provider order',
         unknown: { source: { state: 'detected' } }
       }
     }),
-    ['claude', 'cursor']
+    ['cursor', 'claude']
   );
 });
 
-test('initial limit providers map only corresponding Collection client aliases', () => {
+test('initial limit providers seed only the six default providers', () => {
   assert.deepEqual(
     limitProvidersForDetectedClients({
       clients: {
@@ -60,7 +61,7 @@ test('initial limit providers map only corresponding Collection client aliases',
         dsh: { source: { state: 'detected' } }
       }
     }),
-    ['mimo', 'zai', 'qoder', 'deepseek']
+    ['deepseek']
   );
 });
 
@@ -105,8 +106,9 @@ test('other health data cannot make a missing source eligible for initial limits
   }), ['codex']);
 });
 
-test('only an omitted provider selection defaults to all providers', () => {
-  assert.deepEqual(parseLimitProviders(), LIMIT_PROVIDER_IDS);
+test('only an omitted provider selection defaults to the six default providers', () => {
+  assert.deepEqual(parseLimitProviders(), [...DEFAULT_LIMIT_PROVIDER_IDS]);
+  assert.deepEqual(parseLimitProviders(), ['cursor', 'grok', 'claude', 'codex', 'opencode', 'deepseek']);
   assert.deepEqual(parseLimitProviders(''), []);
   assert.deepEqual(parseLimitProviders([]), []);
 });

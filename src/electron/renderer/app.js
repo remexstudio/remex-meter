@@ -63,10 +63,10 @@ function iconKindFor(rowData, breakdown) {
 }
 
 const LIMIT_PROVIDER_ACCOUNT_GROUP_IDS = {
+  cursor: 'cursorAccountGroup',
   claude: 'claudeAccountGroup',
   codex: 'codexAccountGroup',
   opencode: 'opencodeCookieGroup',
-  cursor: 'cursorAccountGroup',
   antigravity: 'antigravityAccountGroup',
   kimi: 'kimiAccountGroup',
   copilot: 'copilotAccountGroup',
@@ -83,10 +83,10 @@ const LIMIT_PROVIDER_ACCOUNT_GROUP_IDS = {
   thirdparty: 'thirdpartyAccountGroup'
 };
 const LIMIT_PROVIDER_ACCOUNT_STATUS_IDS = {
+  cursor: 'cursorAccountStatus',
   claude: 'claudeAccountStatus',
   codex: 'codexAccountStatus',
   opencode: 'opencodeCookieStatus',
-  cursor: 'cursorAccountStatus',
   antigravity: 'antigravityAccountStatus',
   kimi: 'kimiAccountStatus',
   copilot: 'copilotApiTokenStatus',
@@ -276,10 +276,9 @@ const SERVICE_STATUS_PLACEHOLDERS = [
   { id: 'deepseek', label: 'DeepSeek', pageUrl: 'https://status.deepseek.com' }
 ];
 const SERVICE_PROVIDER_OPTIONS = SERVICE_STATUS_PLACEHOLDERS.map((entry) => ({ id: entry.id, label: entry.label }));
-const TOKEN_MONITOR_REPOSITORY_URL = 'https://github.com/Javis603/token-monitor';
-const TOKEN_MONITOR_ISSUES_URL = `${TOKEN_MONITOR_REPOSITORY_URL}/issues/new/choose`;
-const TOKEN_MONITOR_WEBSITE_URL = 'https://javis-ai.com/token-monitor/';
-const TOKEN_MONITOR_WSL_SQLITE_GUIDE_URL = `${TOKEN_MONITOR_REPOSITORY_URL}/blob/main/docs/wsl-sqlite-setup.md`;
+const PRODUCT_REPOSITORY_URL = 'https://github.com/remexstudio/remex-meter';
+const PRODUCT_ISSUES_URL = `${PRODUCT_REPOSITORY_URL}/issues/new`;
+const PRODUCT_WSL_SQLITE_GUIDE_URL = `${PRODUCT_REPOSITORY_URL}/blob/main/docs/wsl-sqlite-setup.md`;
 const serviceStatusProviderPreferencesApi = window.TokenMonitorServiceStatusProviderPreferences;
 const SETTINGS_SECTION_IDS = ['general', 'main', 'window', 'appearance', 'tools', 'limits', 'subscriptions', 'sync'];
 const REFRESH_BUTTON_FEEDBACK_MS = 700;
@@ -424,7 +423,6 @@ Object.assign(els, {
   openTokscaleLinkButton: document.getElementById('openTokscaleLinkButton'),
   aboutVersion: document.getElementById('aboutVersion'),
   openRepositoryButton: document.getElementById('openRepositoryButton'),
-  openWebsiteButton: document.getElementById('openWebsiteButton'),
   reportIssueButton: document.getElementById('reportIssueButton'),
   appUpdatePill: document.getElementById('appUpdatePill'),
   appUpdatePillAction: document.getElementById('appUpdatePillAction'),
@@ -9694,7 +9692,7 @@ function renderWslPanel() {
     guide.type = 'button';
     guide.className = 'inline-link';
     guide.textContent = t('settings.collection.wslPanel.setupGuide');
-    guide.addEventListener('click', () => window.tokenMonitor.openExternal?.(TOKEN_MONITOR_WSL_SQLITE_GUIDE_URL));
+    guide.addEventListener('click', () => window.tokenMonitor.openExternal?.(PRODUCT_WSL_SQLITE_GUIDE_URL));
     help.append(message, ' ', guide);
     els.wslPanel.append(help);
   }
@@ -11606,9 +11604,8 @@ els.checkTokscaleButton?.addEventListener('click', checkTokscaleNpm);
 els.downloadTokscaleButton?.addEventListener('click', downloadTokscaleFromNpm);
 els.resetTokscaleButton?.addEventListener('click', resetTokscaleToBundled);
 els.openTokscaleLinkButton?.addEventListener('click', () => window.tokenMonitor.openExternal?.('https://github.com/junhoyeo/tokscale'));
-els.openRepositoryButton?.addEventListener('click', () => window.tokenMonitor.openExternal?.(TOKEN_MONITOR_REPOSITORY_URL));
-els.openWebsiteButton?.addEventListener('click', () => window.tokenMonitor.openExternal?.(TOKEN_MONITOR_WEBSITE_URL));
-els.reportIssueButton?.addEventListener('click', () => window.tokenMonitor.openExternal?.(TOKEN_MONITOR_ISSUES_URL));
+els.openRepositoryButton?.addEventListener('click', () => window.tokenMonitor.openExternal?.(PRODUCT_REPOSITORY_URL));
+els.reportIssueButton?.addEventListener('click', () => window.tokenMonitor.openExternal?.(PRODUCT_ISSUES_URL));
 els.refreshButton.addEventListener('click', () => {
   if (state.breakdown === 'status') refreshStatusViewManually().catch(() => {});
   // Only this button asks for a history rescan and a self-sync: `{ force: true }` is

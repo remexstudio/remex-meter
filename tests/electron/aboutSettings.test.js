@@ -18,7 +18,7 @@ test('General settings ends with a compact About section', () => {
   assert.match(general, /class="settings-subgroup about-settings"/);
   assert.match(general, /id="aboutVersion">—<\/span>/);
   assert.match(general, /id="openRepositoryButton"[\s\S]*settings\.about\.repository/);
-  assert.match(general, /id="openWebsiteButton"[\s\S]*settings\.about\.website/);
+  assert.doesNotMatch(general, /id="openWebsiteButton"/);
   assert.match(general, /id="reportIssueButton"[\s\S]*settings\.about\.reportIssue/);
   assert.ok(general.indexOf('settings.advanced.title') < general.indexOf('settings.about.title'));
 });
@@ -89,19 +89,18 @@ test('Tokscale updates surface a localized status in the collapsed Advanced row'
   assert.match(app, /advancedSettingsSummary\.dataset\.i18n = advancedSummaryKey/);
 });
 
-test('About uses runtime version and allowlisted Token Monitor links', () => {
+test('About uses runtime version and allowlisted Remex Meter links', () => {
   const app = read('app.js');
 
   assert.match(app, /aboutVersion\.textContent = state\.appInfo\?\.version \? `v\$\{state\.appInfo\.version\}` : '—'/);
-  assert.match(app, /TOKEN_MONITOR_REPOSITORY_URL = 'https:\/\/github\.com\/Javis603\/token-monitor'/);
-  assert.match(app, /TOKEN_MONITOR_ISSUES_URL = `\$\{TOKEN_MONITOR_REPOSITORY_URL\}\/issues\/new\/choose`/);
-  assert.match(app, /TOKEN_MONITOR_WEBSITE_URL = 'https:\/\/javis-ai\.com\/token-monitor\/'/);
-  assert.match(app, /openRepositoryButton\?\.addEventListener\('click',[\s\S]*TOKEN_MONITOR_REPOSITORY_URL/);
-  assert.match(app, /openWebsiteButton\?\.addEventListener\('click',[\s\S]*TOKEN_MONITOR_WEBSITE_URL/);
-  assert.match(app, /reportIssueButton\?\.addEventListener\('click',[\s\S]*TOKEN_MONITOR_ISSUES_URL/);
+  assert.match(app, /PRODUCT_REPOSITORY_URL = 'https:\/\/github\.com\/remexstudio\/remex-meter'/);
+  assert.match(app, /PRODUCT_ISSUES_URL = `\$\{PRODUCT_REPOSITORY_URL\}\/issues\/new`/);
+  assert.match(app, /openRepositoryButton\?\.addEventListener\('click',[\s\S]*PRODUCT_REPOSITORY_URL/);
+  assert.doesNotMatch(app, /openWebsiteButton/);
+  assert.match(app, /reportIssueButton\?\.addEventListener\('click',[\s\S]*PRODUCT_ISSUES_URL/);
 
   const main = fs.readFileSync(path.join(rendererDir, '..', 'main.js'), 'utf8');
-  assert.match(main, /parsed\.hostname === 'javis-ai\.com'[\s\S]*parsed\.pathname === '\/token-monitor'/);
+  assert.doesNotMatch(main, /javis-ai\.com/);
 });
 
 test('About links stay visually secondary and wrap in narrow settings', () => {

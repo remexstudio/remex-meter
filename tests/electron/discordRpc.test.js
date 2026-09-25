@@ -78,7 +78,7 @@ test('Discord Rich Presence follows localized compact token units', () => {
 
 test('Discord Rich Presence uses labels and asset keys for tracked clients', () => {
   const buildPayload = loadBuildPayload();
-  for (const [client, label] of [['hermes', 'Hermes Agent'], ['kimi', 'Kimi'], ['qwen', 'Qwen'], ['grok', 'Grok Build'], ['copilot', 'GitHub Copilot']]) {
+  for (const [client, label] of [['hermes', 'Hermes Agent'], ['kimi', 'Kimi'], ['qwen', 'Qwen'], ['grok', 'Grok'], ['copilot', 'GitHub Copilot']]) {
     const payload = buildPayload({
       periods: {
         today: {
@@ -97,7 +97,7 @@ test('Discord Rich Presence uses labels and asset keys for tracked clients', () 
 
 test('Discord Rich Presence uses labels and asset keys for newer tracked clients', () => {
   const buildPayload = loadBuildPayload();
-  for (const [client, label] of [['pi', 'Pi'], ['zed', 'Zed'], ['kilo', 'Kilo'], ['commandcode', 'Command Code'], ['mimo', 'Xiaomi MiMo'], ['zcode', 'ZCode'], ['kiro', 'Kiro'], ['codebuddy', 'CodeBuddy'], ['workbuddy', 'WorkBuddy'], ['reasonix', 'Reasonix'], ['dsh', 'DeepSeek Harness'], ['lmstudio', 'LM Studio']]) {
+  for (const [client, label] of [['pi', 'Pi'], ['zed', 'Zed'], ['kilo', 'Kilo'], ['commandcode', 'Command Code'], ['mimo', 'Xiaomi MiMo'], ['zcode', 'ZCode'], ['kiro', 'Kiro'], ['codebuddy', 'CodeBuddy'], ['workbuddy', 'WorkBuddy'], ['reasonix', 'Reasonix'], ['dsh', 'DeepSeek'], ['lmstudio', 'LM Studio']]) {
     const payload = buildPayload({
       periods: {
         today: {

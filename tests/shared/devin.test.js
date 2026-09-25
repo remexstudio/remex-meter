@@ -86,7 +86,7 @@ test('devin expands to the two concrete tokscale clients, never the bare umbrell
   // devin-desktop scans pull devin-cli metadata lookups upstream too, so the
   // alias pair always travels together.
   assert.equal(tokscaleClientFilter('devin,devin'), 'devin-cli,devin-desktop');
-  assert.ok(DEFAULT_CLIENTS.split(',').includes('devin'));
+  assert.ok(!DEFAULT_CLIENTS.split(',').includes('devin'));
   assert.ok(!PARSE_LOCAL_CLIENTS.includes('devin'));
 });
 

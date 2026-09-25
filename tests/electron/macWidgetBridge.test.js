@@ -185,18 +185,18 @@ test('resolves only safe macOS App Group snapshot paths', () => {
   const resolveContainerPath = (appGroup) => path.join('/Users/example/Library/Group Containers', appGroup);
   assert.equal(resolveMacWidgetSnapshotPath({
     platform: 'darwin',
-    appGroup: 'group.com.example.tokenmonitor',
+    appGroup: 'group.studio.remex.meter',
     resolveContainerPath
   }), path.join(
     '/Users/example',
     'Library',
     'Group Containers',
-    'group.com.example.tokenmonitor',
+    'group.studio.remex.meter',
     'snapshot.json'
   ));
   assert.equal(resolveMacWidgetSnapshotPath({
     platform: 'linux',
-    appGroup: 'group.com.example.tokenmonitor',
+    appGroup: 'group.studio.remex.meter',
     resolveContainerPath
   }), null);
   assert.equal(resolveMacWidgetSnapshotPath({
@@ -222,13 +222,13 @@ test('resolves only safe macOS App Group snapshot paths', () => {
   }), null);
   assert.equal(resolveMacWidgetSnapshotPath({
     platform: 'darwin',
-    appGroup: 'group.com.example.tokenmonitor',
+    appGroup: 'group.studio.remex.meter',
     resolveContainerPath,
     snapshotFileName: '../credentials.json'
   }), null);
   assert.equal(resolveMacWidgetSnapshotPath({
     platform: 'darwin',
-    appGroup: 'group.com.example.tokenmonitor',
+    appGroup: 'group.studio.remex.meter',
     resolveContainerPath: () => null
   }), null);
 });

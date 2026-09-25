@@ -5,13 +5,13 @@ Remex Meter enables six tools. Each is an existing upstream tracked client (usag
 | Order | Tool | Tracked client id (usage) | Limits provider id | Upstream note |
 |---|---|---|---|---|
 | 1 | Cursor | `cursor` | `cursor` | `docs/providers/cursor.md` |
-| 2 | Grok | `grok` (label "Grok Build") | `grok` | none; see `src/shared/providers/grok/limits.js` |
+| 2 | Grok | `grok` | `grok` | none; see `src/shared/providers/grok/limits.js` |
 | 3 | Claude Code | `claude` | `claude` (label "Claude", settings label "Claude Code") | `docs/providers/claude.md` |
 | 4 | Codex | `codex` | `codex` | `docs/providers/codex.md` |
 | 5 | OpenCode | `opencode` | `opencode` | `docs/providers/opencode.md` |
-| 6 | DeepSeek | `dsh` (label "DeepSeek Harness") | `deepseek` | `docs/providers/dsh.md` (usage); `src/shared/providers/deepseek/` (limits) |
+| 6 | DeepSeek | `dsh` | `deepseek` | `docs/providers/dsh.md` (usage); `src/shared/providers/deepseek/` (limits) |
 
-The client → provider mapping is `limitProviderForClient()` in `src/shared/limits/providers.js`; `dsh` → `deepseek` is one of its explicit exceptions. Labels in the Remex Meter UI come from the catalogs; if a label must change (for example "Grok Build" → "Grok"), change the catalog entry deliberately and update the pinned tests.
+The client → provider mapping is `limitProviderForClient()` in `src/shared/limits/providers.js`; `dsh` → `deepseek` is one of its explicit exceptions. Labels in the Remex Meter UI come from the catalogs. Phase 1 renamed the upstream client labels "Grok Build" and "DeepSeek Harness" to Grok and DeepSeek; `tests/docs/remexMeterTools.test.js` pins this table against the catalogs.
 
 ## Sources at a glance
 
@@ -34,4 +34,4 @@ The client → provider mapping is `limitProviderForClient()` in `src/shared/lim
 
 ## Enabling and disabling
 
-Phase 1 restricts the enabled set to these six through the catalogs (`CLIENT_CATALOG`, `LIMIT_PROVIDER_CATALOG`), following the checklists in `docs/providers/README.md` and keeping the partition-invariant tests green. Do not add a second allowlist beside the catalogs.
+The six lead `CLIENT_CATALOG` and `LIMIT_PROVIDER_CATALOG` in this order. Every other inherited adapter is `defaultTracked: false` (clients) or `defaultEnabled: false` (limits providers): still wired, still selectable in Settings, off on a fresh install. Saved selections are never rewritten. Do not add a second allowlist beside the catalogs.
