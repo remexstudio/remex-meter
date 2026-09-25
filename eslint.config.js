@@ -10,7 +10,8 @@ module.exports = [
   includeIgnoreFile(path.resolve(__dirname, '.gitignore')),
   // site/ is a standalone GitHub Pages property with its own browser conventions
   // worker/src/shared/ is generated (vendored CommonJS); linted at its src/shared/ source
-  { ignores: ['site/**', 'worker/src/shared/**'] },
+  // .agents/skills/ holds vendored agent skills, not project code
+  { ignores: ['site/**', 'worker/src/shared/**', '.agents/**'] },
 
   js.configs.recommended,
 

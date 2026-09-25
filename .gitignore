@@ -3,7 +3,8 @@ data/
 build/
 dist/
 _site/
-.agents/
+.agents/*
+!.agents/skills/
 .claude/
 skills-lock.json
 docs/superpowers/
