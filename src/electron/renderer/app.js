@@ -562,7 +562,7 @@ function preferredLanguages() {
 }
 
 function currentLanguage() {
-  return i18n.normalizeLanguage(state.settings?.language || 'auto');
+  return i18n.normalizeLanguage(state.settings?.language || 'en');
 }
 
 function currentLocale() {

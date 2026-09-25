@@ -52,6 +52,11 @@ test('the updater never checks the upstream repository', () => {
   }
 });
 
+test('English is the default UI language', () => {
+  assert.match(main, /language: 'en',/);
+  assert.match(main, /function normalizeLanguageSetting\(value, fallback = 'en'\)/);
+});
+
 function listFiles(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const full = path.join(dir, entry.name);

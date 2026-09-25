@@ -654,7 +654,8 @@ function defaultSettings() {
     currencyRates: {},
     startAtLogin: false,
     automaticAppUpdates: false,
-    language: 'auto',
+    // English by default; a system-language 'auto' is an explicit choice.
+    language: 'en',
     ...initialAccountSettings(process.env),
     appUpdate: {
       lastCheckedAt: null,
@@ -1921,7 +1922,7 @@ function normalizeHubMode(value, fallback = 'local') {
   return HUB_MODE_VALUES.has(v) ? v : fallback;
 }
 
-function normalizeLanguageSetting(value, fallback = 'auto') {
+function normalizeLanguageSetting(value, fallback = 'en') {
   const raw = String(value || '').replace(/_/g, '-').trim();
   const lower = raw.toLowerCase();
   if (lower === 'auto') return 'auto';
@@ -5241,7 +5242,7 @@ function trayMenuLocale() {
   const preferredLanguages = typeof app.getPreferredSystemLanguages === 'function'
     ? app.getPreferredSystemLanguages()
     : [app.getLocale()];
-  return resolveLocale(settings?.language || 'auto', preferredLanguages);
+  return resolveLocale(settings?.language || 'en', preferredLanguages);
 }
 
 // `isStillCurrent`, when given, is re-checked after the wait: see
