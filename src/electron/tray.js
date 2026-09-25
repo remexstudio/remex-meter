@@ -22,7 +22,9 @@ const ICON_PATH = path.join(__dirname, '..', '..', 'assets', 'icon.png');
 // as much as at 150% (18px in 24px). icon-win.png is the full-bleed variant
 // electron-builder already ships to the Windows installer.
 const WINDOWS_ICON_PATH = path.join(__dirname, '..', '..', 'assets', 'icon-win.png');
-const TRAY_ICON_PATH = path.join(__dirname, '..', '..', 'assets', 'icons', 'tray-token-monitor.png');
+// The Meter status item glyph (a gauge, after SF Symbol `gauge.with.needle`).
+// The `Template` suffix and the @2x sibling are what nativeImage keys off.
+const METER_TEMPLATE_ICON_PATH = path.join(__dirname, '..', '..', 'assets', 'icons', 'meterTemplate.png');
 
 // Windows keeps the taskbar's theme in SystemUsesLightTheme, separate from the
 // AppsUseLightTheme that drives the app theme. Measured on Windows 11 with
@@ -198,10 +200,9 @@ function buildTrayIcon(options = {}) {
   const platform = options.platform || process.platform;
   const nativeImage = options.nativeImage || require('electron').nativeImage;
   if (platform === 'darwin') {
-    const image = nativeImage.createFromPath(TRAY_ICON_PATH);
-    const sized = resizeTrayIconForPlatform(image, { platform, scaleFactor: options.scaleFactor });
-    sized.setTemplateImage(true);
-    return sized;
+    const image = nativeImage.createFromPath(METER_TEMPLATE_ICON_PATH);
+    image.setTemplateImage(true);
+    return image;
   }
   // Windows / Linux: the bundled app icon is already high-resolution, so a
   // single best-quality downscale to the platform metric keeps the small
@@ -411,6 +412,29 @@ function buildTrayMenuTemplate(options = {}) {
   ];
 }
 
+// The Meter status item's secondary menu on macOS. The popover is the primary
+// surface, so the menu only carries the commands docs/UI.md lists.
+function buildMeterMenuTemplate(options = {}) {
+  const state = options.state || {};
+  const callback = (name) => (typeof options[name] === 'function' ? options[name] : () => {});
+  const t = (key, params) => {
+    const translated = typeof options.translate === 'function' ? options.translate(key, params) : '';
+    return translated && translated !== key ? translated : translateMessage('en', key, params);
+  };
+  return [
+    {
+      label: t(state.refreshing ? 'trayMenu.refreshing' : 'trayMenu.refreshNow'),
+      enabled: !state.refreshing,
+      click: callback('onRefresh')
+    },
+    { type: 'separator' },
+    { label: t('trayMenu.settings'), accelerator: 'Command+,', click: callback('onOpenSettings') },
+    { label: t('settings.about.title'), click: callback('onAbout') },
+    { type: 'separator' },
+    { label: t('trayMenu.quit'), accelerator: 'Command+Q', click: callback('onQuit') }
+  ];
+}
+
 async function runTrayMenuAction({ setInFlight, refreshContextMenu, action }) {
   setInFlight(true);
   try {
@@ -425,6 +449,7 @@ async function runTrayMenuAction({ setInFlight, refreshContextMenu, action }) {
 function createTray({
   electron = require('electron'),
   getMenuState,
+  onAbout,
   onOpenSettings,
   onOpenView,
   onQuit,
@@ -440,9 +465,17 @@ function createTray({
   const { Tray, Menu, nativeImage } = electron;
   const tray = new Tray(buildTrayIcon({ platform, nativeImage }));
   tray.setToolTip('Remex Meter');
+  if (platform === 'darwin') tray.setIgnoreDoubleClickEvents(true);
 
   const menuState = () => (typeof getMenuState === 'function' ? getMenuState() : {});
-  const buildMenu = (state = menuState()) => Menu.buildFromTemplate(buildTrayMenuTemplate({
+  const buildMenu = (state = menuState()) => Menu.buildFromTemplate(platform === 'darwin' ? buildMeterMenuTemplate({
+    state,
+    onAbout,
+    onOpenSettings,
+    onQuit,
+    onRefresh,
+    translate: translateMenu
+  }) : buildTrayMenuTemplate({
     state,
     platform,
     onOpenSettings,
@@ -586,8 +619,10 @@ function popoverBounds(tray, popoverWidth, popoverHeight, options = {}) {
 }
 
 module.exports = {
+  METER_TEMPLATE_ICON_PATH,
   SYSTEM_UI_THEME_CONFIRM_MS,
   SYSTEM_UI_THEME_SETTLE_MS,
+  buildMeterMenuTemplate,
   buildTrayIcon,
   buildTrayMenuTemplate,
   createTray,

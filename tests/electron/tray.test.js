@@ -7,6 +7,8 @@ const test = require('node:test');
 const zlib = require('node:zlib');
 
 const {
+  METER_TEMPLATE_ICON_PATH,
+  buildMeterMenuTemplate,
   buildTrayIcon,
   buildTrayMenuTemplate,
   createTray,
@@ -196,13 +198,11 @@ test('fallback tray icon source stays transparent and high-resolution', () => {
   assert.equal(scanlines[4], 0, 'tray PNG corner should remain fully transparent');
 });
 
-test('macOS tray icon downsamples the high-resolution template like provider icons', () => {
+test('macOS status item uses the Meter template glyph at its native point size', () => {
   const calls = [];
-  const resized = {
-    setTemplateImage(value) { calls.push(['template', value]); }
-  };
   const image = {
-    resize(size) { calls.push(['resize', size]); return resized; }
+    resize() { throw new Error('the template glyph ships at 1x/2x and is never resized'); },
+    setTemplateImage(value) { calls.push(['template', value]); }
   };
 
   assert.equal(buildTrayIcon({
@@ -213,13 +213,35 @@ test('macOS tray icon downsamples the high-resolution template like provider ico
         return image;
       }
     }
-  }), resized);
+  }), image);
 
-  assert.match(calls[0][1], /assets[\\/]icons[\\/]tray-token-monitor\.png$/);
-  assert.deepEqual(calls.slice(1), [
-    ['resize', { height: 20, quality: 'best' }],
-    ['template', true]
+  assert.match(calls[0][1], /assets[\\/]icons[\\/]meterTemplate\.png$/);
+  assert.deepEqual(calls.slice(1), [['template', true]]);
+  for (const file of ['meterTemplate.png', 'meterTemplate@2x.png']) {
+    assert.ok(fs.existsSync(path.join(path.dirname(METER_TEMPLATE_ICON_PATH), file)), file);
+  }
+});
+
+test('the macOS status item menu carries only the Meter commands', () => {
+  const calls = [];
+  const template = buildMeterMenuTemplate({
+    state: { refreshing: false },
+    onRefresh: () => calls.push('refresh'),
+    onOpenSettings: () => calls.push('settings'),
+    onAbout: () => calls.push('about'),
+    onQuit: () => calls.push('quit')
+  });
+  assert.deepEqual(template.map((item) => item.label || item.type), [
+    'Refresh Now', 'separator', 'Settings…', 'About Remex Meter', 'separator', 'Quit Remex Meter'
   ]);
+  assert.equal(template[2].accelerator, 'Command+,');
+  assert.equal(template[5].accelerator, 'Command+Q');
+  for (const item of template) item.click?.();
+  assert.deepEqual(calls, ['refresh', 'settings', 'about', 'quit']);
+
+  const refreshing = buildMeterMenuTemplate({ state: { refreshing: true } });
+  assert.equal(refreshing[0].label, 'Refreshing…');
+  assert.equal(refreshing[0].enabled, false);
 });
 
 test('Linux tray icon keeps the resized full-color app asset at the unchanged square size', () => {

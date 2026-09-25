@@ -403,6 +403,7 @@ const {
   attachNativeMaterialVisibility,
   syncNativeMaterialVisibility
 } = require('./nativeMaterialVisibility');
+const { createMeterPopover } = require('./meterPopover');
 
 if (!app.isPackaged) loadDotEnv();
 
@@ -460,6 +461,7 @@ const DEFAULT_HOME_MODULE_LIST = ['limits', 'tool', 'device', 'model', 'trends']
 const TRAY_OPEN_VIEW_IDS = new Set(['home', 'project', 'session', 'limits', 'trends', 'status']);
 
 let mainWindow = null;
+let meterPopover = null;
 let mainWindowNativeBlurEnabled = false;
 let dashboardWindow = null;
 let dashboardWindowNativeBlurEnabled = false;
@@ -644,7 +646,9 @@ function defaultSettings() {
     windowMaximized: false,
     zoomFactor: 1,
     showTrayIcon: true,
-    trayMode: false,
+    // The Meter popover owns the menu bar on macOS, and the inherited window
+    // stays hidden until Settings opens it.
+    trayMode: process.platform === 'darwin',
     hideAppIcon: false,
     trayContent: 'tokens',
     trayCustomLayout: createDefaultTrayLayout(),
@@ -654,7 +658,7 @@ function defaultSettings() {
     currencyRates: {},
     startAtLogin: false,
     automaticAppUpdates: false,
-    language: 'auto',
+    language: 'en',
     ...initialAccountSettings(process.env),
     appUpdate: {
       lastCheckedAt: null,
@@ -4210,6 +4214,7 @@ function sendPush(payload, options = {}) {
   } else if (mainWindow && !mainWindow.isDestroyed()) {
     try { mainWindow.webContents.send('stats:push', rendererPayload); } catch (_) {}
   }
+  meterPopover?.send('stats:push', rendererPayload);
   if (payload?.data?.stats) {
     const nextHistoryRevision = statsHistoryRevision(payload.data.stats);
     if (nextHistoryRevision !== previousHistoryRevision && dashboardWindow && !dashboardWindow.isDestroyed()) {
@@ -4313,7 +4318,11 @@ function updateTrayDisplay() {
   if (barsImageMode || trayImageMode || customImageMode) {
     icon = providerTrayIcons[mode];
   } else {
-    const usageIconId = pickUsageTrayIconId(visibleStats, mode, Object.keys(providerTrayIcons));
+    // The Meter status item keeps its template glyph on macOS; provider marks
+    // are for the tray icon modes the user opts into.
+    const usageIconId = process.platform === 'darwin'
+      ? null
+      : pickUsageTrayIconId(visibleStats, mode, Object.keys(providerTrayIcons));
     if (usageIconId) icon = providerTrayIcons[usageIconId];
   }
   tray.setImage(icon || getDefaultTrayIcon());
@@ -4789,6 +4798,7 @@ function pushSettingsToRenderer() {
   if (mainWindow && !mainWindow.isDestroyed()) {
     try { mainWindow.webContents.send('settings:push', payload); } catch (_) {}
   }
+  meterPopover?.send('settings:push', payload);
   // The trends dashboard is a separate renderer with its own currency module
   // instance; it must receive effective-rate updates too, otherwise an
   // already-open dashboard keeps showing the previous rate after an auto
@@ -5194,7 +5204,24 @@ function handleWindowToggleShortcut() {
   else focusExistingWindow();
 }
 
+function ensureMeterPopover() {
+  if (meterPopover) return meterPopover;
+  meterPopover = createMeterPopover({
+    BrowserWindow,
+    nativeTheme,
+    screen,
+    preload: path.join(__dirname, 'preload.js'),
+    anchorBounds: (width, height, anchor) => popoverBounds(tray, width, height, { clickPoint: anchor?.point || null })
+  });
+  return meterPopover;
+}
+
 function handleTrayToggle(_tray, clickPoint = null) {
+  if (process.platform === 'darwin') {
+    if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible() && settings?.trayMode) hidePopover();
+    ensureMeterPopover().toggle({ point: clickPoint });
+    return;
+  }
   const action = trayToggleAction(settings);
   if (action === 'togglePopover') togglePopover(clickPoint);
   else if (action === 'focusWindow') focusExistingWindow();
@@ -5281,6 +5308,7 @@ function setWindowPresentationFromMenu(value) {
 }
 
 function openSettingsFromTray() {
+  meterPopover?.hide();
   focusExistingWindow();
   sendMainWindowEvent('settings:open');
 }
@@ -5424,6 +5452,10 @@ function ensureTray() {
     onSetEdgeDock: setEdgeDockFromMenu,
     onSwitchCodexAccount: (accountId) => { void switchCodexAccountFromTray(accountId); },
     onOpenSettings: openSettingsFromTray,
+    onAbout: () => {
+      meterPopover?.hide();
+      app.showAboutPanel();
+    },
     onQuit: requestAppQuit,
     translateMenu: (key, params) => translate(trayMenuLocale(), key, params)
   });
@@ -6667,7 +6699,10 @@ app.whenReady().then(() => {
   // Switching the OS between light and dark repaints the taskbar underneath an
   // icon we have already handed to the shell, so the renderer has to recompose
   // it — nothing else in the app would notice the change.
-  nativeTheme.on('updated', () => { void pushSystemUiThemeAfterChange(); });
+  nativeTheme.on('updated', () => {
+    void pushSystemUiThemeAfterChange();
+    meterPopover?.syncAccessibility();
+  });
   const widgetRuntime = macWidgetRuntimeSupport({
     platform: process.platform,
     osRelease: process.platform === 'darwin' ? os.release() : ''
@@ -8344,13 +8379,26 @@ app.whenReady().then(() => {
     return { ok: true };
   });
   ipcMain.on('window:minimize', (event) => {
+    if (meterPopover?.owns(event.sender)) {
+      meterPopover.hide();
+      return;
+    }
     if (settings?.trayMode) {
       hidePopover();
       return;
     }
     actionWindowForEvent(BrowserWindow, event, mainWindow)?.minimize();
   });
+  ipcMain.on('window:preferredHeight', (event, height) => {
+    if (meterPopover?.owns(event.sender)) meterPopover.setContentHeight(height);
+  });
+  ipcMain.on('settings:open', () => { openSettingsFromTray(); });
+  ipcMain.on('app:quit', () => { requestAppQuit(); });
   ipcMain.on('window:close', (event) => {
+    if (meterPopover?.owns(event.sender)) {
+      meterPopover.hide();
+      return;
+    }
     if (settings?.trayMode) {
       hidePopover();
       return;
