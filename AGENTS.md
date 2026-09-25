@@ -1,6 +1,72 @@
 # AGENTS.md
 
-This is the entry point for project guidance shared by every coding agent (Claude Code, Codex, Cursor, …). It is loaded automatically; the documents it routes to are not, so anything an unrelated change can break is listed under [Tripwires](#tripwires) here, with the full reasoning in the linked document.
+Entry point for every coding agent working on **Remex Meter** (`remexstudio/remex-meter`), a local-first macOS menu-bar meter for AI coding tool usage and plan limits. The data plane is adapted from [Javis603/token-monitor](https://github.com/Javis603/token-monitor) (MIT, see `NOTICE`). This file is loaded automatically; the documents it routes to are not.
+
+The Remex Meter rules below come first. The engineering guide after them is inherited from upstream and still binding for the data plane.
+
+## Required skills
+
+Load these from `.agents/skills/` **before** any change to the menu bar extra, the tray popover, quota modules, native materials/vibrancy, settings UI, app icons, SF Symbols or the Swift widget:
+
+1. `apple-menubar-monitor` — Remex Meter's house guide for the menu bar, popover, pools, symbols and accessibility.
+2. `macos-design` — native macOS layout, interaction and visual design.
+3. `macos-menubar-app-development` — **currently blocked and not vendored** because of its license (see `.agents/skills/macos-menubar-app-development/BLOCKED.md` and [issue #2](https://github.com/remexstudio/remex-meter/issues/2)). Do not fetch or install it into this repository. Until the issue is resolved, items 1 and 2 are the required set.
+
+Load `apple-design` as well for design reviews and accessibility audits. `macos-gui-app-design` is blocked for the same reason as item 3. Vendored skill pins and license status are in `.agents/skills/VENDORED.md`; never hand-edit vendored skill files.
+
+## Names
+
+Use exactly these names. Do not invent alternatives.
+
+| Thing | Value |
+|---|---|
+| Product | Remex Meter |
+| Repository | `remexstudio/remex-meter` |
+| Electron `productName` | Remex Meter |
+| Menu bar extra label | Meter |
+| Bundle id | `studio.remex.meter` |
+| DMG | `Remex-Meter-${version}-arm64.dmg` |
+| About | Remex Meter · Remex Studio |
+
+Never use "Token Monitor", "Remex Monitor", "remex-monitor", "token-monitor", "AI Usage" or "Quota App" as a product, repository, bundle or UI name. "Token Monitor" / `Javis603/token-monitor` may appear only as upstream attribution. The inherited code still carries upstream names (package metadata, `APP_NAME`, `TOKEN_MONITOR_*` env vars, `TokenMonitorWidget`); they are renamed deliberately in Phase 1 ([issue #3](https://github.com/remexstudio/remex-meter/issues/3)), not piecemeal.
+
+## Language
+
+- Everything **we** author is English: files, code comments, docs, UI strings, commit messages, issues, PRs and briefs.
+- Inherited Chinese text from upstream (localized READMEs, i18n tables, comments) stays untouched unless that exact line must change for behaviour. Do not mass-translate or delete it.
+- The default app locale is English. Do not add new Chinese (or other) localizations in v1.
+- A Remex Meter commit must not add Chinese characters. Check before committing: `git diff --cached | grep -P '^\+.*[\p{Han}]'` must print nothing.
+
+## Product invariants
+
+Details and rationale are in `docs/PRODUCT.md`, `docs/POOLS.md`, `docs/UPSTREAM.md` and `docs/UI.md`.
+
+- **Client ids are partition keys.** Keep the upstream partition invariants (below and in `docs/providers/README.md`).
+- **Limits are not usage.** Token/cost usage comes from tokscale; plan limits come from the provider registry. Never derive one from the other.
+- **Unavailable is not zero.** A missing window or a non-`ok` provider status renders as a state, never as `0%`.
+- **Pools stay separate.** Grok Heavy Weekly and Grok Bolt Weekly are never summed; Cursor Mode Pool and Cursor Other Modes are never merged into one bar.
+- **No invented numbers.** Never display a quota percentage the provider did not return.
+- **Catalog-driven UI.** Tools, order, labels and marks come from `CLIENT_CATALOG`, `LIMIT_PROVIDER_CATALOG` and `VENDOR_PRESENTATION`; no provider-specific markup.
+- **Real vibrancy.** Native material first; CSS blur only as a fallback.
+- **macOS Apple Silicon only.** Do not enable Windows or Linux builds or add new branches for them.
+- **Six tools.** Cursor, Grok, Claude Code, Codex, OpenCode, DeepSeek — enabled in Phase 1. Until then the inherited tool list is unchanged.
+- **No new data architecture.** Adapt tokscale, the limits runtime and the provider registry; do not add a parallel collector, store or IPC family.
+
+## Remex Meter documents
+
+| Changing… | Read first |
+|---|---|
+| anything user-facing, scope or defaults | `docs/PRODUCT.md` |
+| Cursor or Grok quota windows, or any meter that could be summed | `docs/POOLS.md` |
+| which upstream module owns what; merging upstream changes | `docs/UPSTREAM.md` |
+| the six enabled tools and their ids | `docs/PROVIDERS.md` |
+| the menu bar extra, popover, settings or widget visuals | `docs/UI.md` and the required skills above |
+
+The phase plan is tracked in GitHub issues labelled `P0`, `P1` and `P2`.
+
+---
+
+# Engineering guide (inherited)
 
 ## Commands
 
