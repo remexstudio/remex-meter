@@ -3,7 +3,7 @@ import SwiftUI
 import WidgetKit
 
 enum TokenMonitorWidgetConfiguration {
-    static let kind = Bundle.main.object(forInfoDictionaryKey: "TMWidgetKind") as? String ?? "com.tokenmonitor.dashboard"
+    static let kind = Bundle.main.object(forInfoDictionaryKey: "TMWidgetKind") as? String ?? "studio.remex.meter.dashboard"
     static let summaryKind = "\(kind).summary"
     static let activityKind = "\(kind).activity"
     static let breakdownKind = "\(kind).breakdown"

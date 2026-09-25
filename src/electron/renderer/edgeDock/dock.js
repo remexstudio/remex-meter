@@ -1108,7 +1108,7 @@ function statCard(cell) {
   // and fallback colours so one model never changes identity between surfaces.
   const rows = breakdownMode === 'models'
     ? (cell.models || []).map((model) => ({
-      // Match the main widget: an unknown model uses the Token Monitor mark.
+      // Match the main widget: an unknown model uses the Remex Meter mark.
       // Passing null to markNode would instead select its generic dot fallback.
       id: modelVendorFor(model.model) || 'token-monitor',
       name: model.model === UNATTRIBUTED_KEY ? t('dashboard.tooltip.unclassified') : model.model,

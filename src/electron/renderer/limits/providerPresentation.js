@@ -352,7 +352,7 @@
 
   // The "live" Codex account is the one THIS device's Codex app/CLI is currently
   // signed into (sourceDetail app/cli/unknown). Managed accounts added inside
-  // Token Monitor report sourceDetail 'managed' and are NOT live. A remote
+  // Remex Meter report sourceDetail 'managed' and are NOT live. A remote
   // device's live login (selectedIsRemote) is also not "live" from here — across
   // synced devices, "Live" only ever points at the local account.
   function isCodexLiveAccount(provider, provenance) {
@@ -434,7 +434,7 @@
       // Cline owns its credential lifecycle — it refreshes the stored token
       // whenever the app or the CLI runs, and only it persists a rotated one — so
       // this provider reads that sign-in read-only. The two lanes it accepts refuse
-      // in different places: a rejected key is replaced in Token Monitor's own
+      // in different places: a rejected key is replaced in Remex Meter's own
       // settings field, while a stale sign-in only opening Cline fixes. The shared
       // vocabulary carries one `unauthorized` for both, so the label reads the lane
       // off the row: providers/cline/limits.js reports `api` for a configured key

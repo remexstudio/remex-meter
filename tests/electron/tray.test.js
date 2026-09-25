@@ -426,7 +426,7 @@ test('tray context menu complements the primary click with useful commands', () 
   });
 
   assert.deepEqual(template.map((item) => item.label || item.type), [
-    'Refresh Now', 'Open View', 'separator', 'Tray Display', 'Window Presentation', 'separator', 'Version 0.27.0', 'Settings…', 'Quit Token Monitor'
+    'Refresh Now', 'Open View', 'separator', 'Tray Display', 'Window Presentation', 'separator', 'Version 0.27.0', 'Settings…', 'Quit Remex Meter'
   ]);
   assert.equal(template.some((item) => item.label === 'Show / Hide'), false);
   assert.equal(template[3].submenu.find((item) => item.label === 'Today Tokens + Cost').checked, true);
@@ -506,7 +506,7 @@ test('tray context menu shows the macOS Quit shortcut on macOS only', () => {
     platform: 'darwin'
   });
   const quit = darwin.at(-1);
-  assert.equal(quit.label, 'Quit Token Monitor');
+  assert.equal(quit.label, 'Quit Remex Meter');
   assert.equal(quit.accelerator, 'Command+Q');
   // Scoped to macOS because that is where the shortcut is worth echoing, not
   // because a menu accelerator elsewhere would be unsafe: menu accelerators are

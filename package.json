@@ -1,8 +1,8 @@
 {
-  "name": "token-monitor",
-  "productName": "Token Monitor",
+  "name": "remex-meter",
+  "productName": "Remex Meter",
   "version": "0.62.0",
-  "description": "Live token & cost widget for Claude Code, Codex & Hermes — local-first, optional multi-device sync.",
+  "description": "Local-first macOS menu-bar meter for AI coding tool usage, cost and plan limits.",
   "main": "src/electron/main.js",
   "scripts": {
     "start": "npm run ensure:tokscale && electron .",
@@ -35,8 +35,8 @@
     "verify": "npm run lint && npm test"
   },
   "build": {
-    "appId": "com.javis.tokenmonitor",
-    "productName": "Token Monitor",
+    "appId": "studio.remex.meter",
+    "productName": "Remex Meter",
     "directories": {
       "output": "dist"
     },
@@ -54,7 +54,7 @@
       "node_modules/koffi/**/*"
     ],
     "mac": {
-      "artifactName": "Token-Monitor-${version}-${arch}.${ext}",
+      "artifactName": "Remex-Meter-${version}-arm64.${ext}",
       "target": [
         "dmg",
         "zip"
@@ -122,8 +122,8 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "Javis603",
-        "repo": "token-monitor"
+        "owner": "remexstudio",
+        "repo": "remex-meter"
       }
     ]
   },
@@ -131,26 +131,27 @@
     "tokscale",
     "claude-code",
     "codex",
-    "hermes",
-    "token-monitor",
+    "cursor",
+    "grok",
+    "opencode",
+    "deepseek",
     "token-usage",
     "cost-tracking",
-    "llm",
     "ai-tools",
     "electron",
-    "desktop-widget",
-    "local-first",
-    "self-hosted"
+    "macos",
+    "menu-bar",
+    "local-first"
   ],
-  "author": "Javis",
+  "author": "Remex Studio",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Javis603/token-monitor.git"
+    "url": "git+https://github.com/remexstudio/remex-meter.git"
   },
-  "homepage": "https://github.com/Javis603/token-monitor#readme",
+  "homepage": "https://github.com/remexstudio/remex-meter#readme",
   "bugs": {
-    "url": "https://github.com/Javis603/token-monitor/issues"
+    "url": "https://github.com/remexstudio/remex-meter/issues"
   },
   "dependencies": {
     "@xhayper/discord-rpc": "^1.3.4",

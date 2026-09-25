@@ -7,7 +7,7 @@ const { REASONIX_CLIENT } = require('./providers/reasonix/paths');
 const TOKSCALE_CLIENT_ALIASES = new Map([
   ['antigravity-cli', 'antigravity'],
   // `micode` is tokscale's id for MiMo Code, a fossil of the path typo its PR
-  // #784 fixed. Token Monitor's id is `mimo`, so both upstream spellings fold
+  // #784 fixed. Remex Meter's id is `mimo`, so both upstream spellings fold
   // onto it — including plain `micode`, which is what every device and stored
   // history record written before the rename still says.
   ['micode', 'mimo'],
@@ -17,7 +17,7 @@ const TOKSCALE_CLIENT_ALIASES = new Map([
   ['devin-desktop', 'devin']
 ]);
 
-// Canonical Token Monitor identity for client ids emitted by Tokscale. Keep
+// Canonical Remex Meter identity for client ids emitted by Tokscale. Keep
 // this small and exact: product-name heuristics still belong to usage.js, while
 // history and the durable archive need the same raw-id aliases as live usage.
 function normalizeTokscaleClientName(value) {
@@ -135,7 +135,7 @@ function parseGraphResult(raw) {
         ? num(c.unclassifiedTokens ?? c.unclassified_tokens)
         : (t > 0 && !componentsAvailable ? t : 0)));
       // Reasonix's `messages` field is a provider request count, not user turns.
-      // Keep it out of Token Monitor's message/activity semantics; its tokens and
+      // Keep it out of Remex Meter's message/activity semantics; its tokens and
       // cost still contribute normally to the history totals.
       const msg = String(client).trim().toLowerCase() === REASONIX_CLIENT ? 0 : num(c.messages);
       tokens += t;

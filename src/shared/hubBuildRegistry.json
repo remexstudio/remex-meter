@@ -229,6 +229,10 @@
       {
         "revision": 57,
         "buildId": "sha256:4dbf311af6ea311d0b0615feaa83310238e2346e2dc398c7bff962a388bc57cc"
+      },
+      {
+        "revision": 58,
+        "buildId": "sha256:f638d5b3c2a6a477bb256e65854528305199ddd3cb35a5b5775cda359b0794d7"
       }
     ],
     "node-hub": [
@@ -247,6 +251,10 @@
       {
         "revision": 4,
         "buildId": "sha256:f1db81c0d1ede372aaf74c39514e00d19bee54f064dec77e5554c6434eb6ceb0"
+      },
+      {
+        "revision": 5,
+        "buildId": "sha256:44c3ed95c03dcf3ab7ef816096566e3b74f6cca6b61350b0022e4ffdb3b98c3b"
       }
     ],
     "cloudflare-worker": [

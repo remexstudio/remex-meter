@@ -337,7 +337,7 @@ function shouldApplyPeriod(periodName, entry, now) {
 // contents.
 //
 // Decided by the entry's own generation, not by its client id. Tokscale has
-// scanned `.omp/agent/sessions` under `pi` since v2.0.19 and Token Monitor has
+// scanned `.omp/agent/sessions` under `pi` since v2.0.19 and Remex Meter has
 // shipped that scanner continuously since these archives existed, so every `pi`
 // snapshot written before the split covers both products. That says nothing about
 // a `pi` snapshot written after it: a user who untracks Pi today stores a

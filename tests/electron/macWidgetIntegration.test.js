@@ -646,7 +646,7 @@ test('uses AppIntent configuration and in-place refresh interactions', () => {
   assert.match(widgetSource, /static let quotaKind = "\\\(kind\)\.quota"/);
   assert.doesNotMatch(widgetSource, /legacyQuotaKind|\.quota\.v2/);
   assert.doesNotMatch(widgetReloaderSource, /\.quota\.v2/);
-  assert.match(widgetSource, /com\.tokenmonitor\.dashboard/);
+  assert.match(widgetSource, /studio\.remex\.meter\.dashboard/);
 });
 
 test('each Widget configuration exposes only choices that its composition supports', () => {
@@ -799,11 +799,12 @@ test('macOS Widget model vendor marks cover the Kimi coding-plan ids', () => {
   );
 });
 
-test('macOS Widget packaging keeps the canonical Token Monitor app identity', () => {
+test('macOS Widget packaging keeps the canonical Remex Meter app identity', () => {
   assert.equal(packageJson.scripts['mac:local'], undefined);
   assert.equal(packageJson.scripts['mac:local:open'], undefined);
-  assert.equal(packageJson.productName, 'Token Monitor');
-  assert.equal(packageJson.build.productName, 'Token Monitor');
+  assert.equal(packageJson.productName, 'Remex Meter');
+  assert.equal(packageJson.build.productName, 'Remex Meter');
+  assert.equal(packageJson.build.appId, 'studio.remex.meter');
 });
 
 test('Widget build provenance fields are injected into the extension Info.plist', () => {
@@ -816,7 +817,7 @@ test('Widget build provenance fields are injected into the extension Info.plist'
   ]) {
     assert.match(widgetInfo, new RegExp(`<key>${key}</key>`));
   }
-  assert.match(widgetProject, /TOKEN_MONITOR_WIDGET_KIND = com\.tokenmonitor\.dashboard;/);
+  assert.match(widgetProject, /TOKEN_MONITOR_WIDGET_KIND = studio\.remex\.meter\.dashboard;/);
   assert.match(widgetProject, /TOKEN_MONITOR_WIDGET_GIT_REVISION = unknown;/);
   assert.match(widgetBuildSource, /const WIDGET_UI_VERSION = 47;/);
   assert.match(widgetBuildSource, /const WIDGET_SCHEMA_VERSION = 10;/);
@@ -852,27 +853,27 @@ test('keeps marketing and bundle versions numeric across release channels', () =
 });
 
 test('production entitlement plists bind each provisioned executable to its Apple identity', () => {
-  const appGroup = 'group.com.example.tokenmonitor';
+  const appGroup = 'group.studio.remex.meter';
   const appEntitlements = entitlementPlist(appGroup, {
     profile: {
-      applicationIdentifier: 'ABCDE12345.com.example.tokenmonitor',
+      applicationIdentifier: 'ABCDE12345.studio.remex.meter',
       teamIdentifier: 'ABCDE12345'
     }
   });
   const widgetEntitlements = entitlementPlist(appGroup, {
     extension: true,
     profile: {
-      applicationIdentifier: 'ABCDE12345.com.example.tokenmonitor.widget',
+      applicationIdentifier: 'ABCDE12345.studio.remex.meter.widget',
       teamIdentifier: 'ABCDE12345'
     }
   });
 
   for (const entitlements of [appEntitlements, widgetEntitlements]) {
     assert.match(entitlements, /<key>com\.apple\.developer\.team-identifier<\/key>\s*<string>ABCDE12345<\/string>/);
-    assert.match(entitlements, /<key>com\.apple\.security\.application-groups<\/key>\s*<array>\s*<string>group\.com\.example\.tokenmonitor<\/string>/);
+    assert.match(entitlements, /<key>com\.apple\.security\.application-groups<\/key>\s*<array>\s*<string>group\.studio\.remex\.meter<\/string>/);
   }
-  assert.match(appEntitlements, /<key>com\.apple\.application-identifier<\/key>\s*<string>ABCDE12345\.com\.example\.tokenmonitor<\/string>/);
-  assert.match(widgetEntitlements, /<key>com\.apple\.application-identifier<\/key>\s*<string>ABCDE12345\.com\.example\.tokenmonitor\.widget<\/string>/);
+  assert.match(appEntitlements, /<key>com\.apple\.application-identifier<\/key>\s*<string>ABCDE12345\.studio\.remex\.meter<\/string>/);
+  assert.match(widgetEntitlements, /<key>com\.apple\.application-identifier<\/key>\s*<string>ABCDE12345\.studio\.remex\.meter\.widget<\/string>/);
   assert.match(widgetEntitlements, /<key>com\.apple\.security\.app-sandbox<\/key>\s*<true\/>/);
 
   const localEntitlements = entitlementPlist(appGroup);
@@ -993,7 +994,7 @@ test('Widget layout uses system margins without retaining the superseded scaffol
   assert.match(widgetSource, /WidgetDesignTokens\.largeGap/);
   assert.match(widgetSource, /\.frame\(maxWidth: \.infinity, maxHeight: \.infinity, alignment: \.topLeading\)/);
   assert.match(widgetInfo, /<key>TMWidgetSchemaVersion<\/key>\s*<string>\$\(TOKEN_MONITOR_WIDGET_SCHEMA_VERSION\)<\/string>/);
-  assert.match(widgetProject, /TOKEN_MONITOR_WIDGET_KIND = com\.tokenmonitor\.dashboard;/);
+  assert.match(widgetProject, /TOKEN_MONITOR_WIDGET_KIND = studio\.remex\.meter\.dashboard;/);
 })
 
 test('registered Widget families stay fixed to their purpose-built sizes', () => {
