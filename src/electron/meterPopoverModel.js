@@ -15,7 +15,7 @@
 const { CLIENT_CATALOG } = require('../shared/clientCatalog');
 const { LIMIT_PROVIDER_CATALOG, limitProviderForClient } = require('../shared/limits/providers');
 const balanceDisplay = require('../shared/limits/balanceDisplay');
-const { formatCurrencyFromUsd } = require('../shared/currency');
+const { CURRENCY_RATES, convertUsd, normalizeCurrency } = require('../shared/currency');
 const { formatCompactTokens } = require('../shared/compactTokens');
 const { ROW_ICON_MASKS, VENDOR_PRESENTATION, vendorColors } = require('../shared/vendorPresentation');
 
@@ -81,6 +81,16 @@ function orderedTools(settings = {}) {
     .map(({ client }) => client);
 }
 
+// Two decimals suit a glanceable row; the Home view keeps upstream's finer
+// precision for small amounts.
+function compactCost(costUsd, currency) {
+  const code = normalizeCurrency(currency);
+  const amount = convertUsd(costUsd, code);
+  const symbol = CURRENCY_RATES[code].symbol;
+  if (amount > 0 && amount < 0.01) return `<${symbol}0.01`;
+  return `${symbol}${amount.toFixed(2)}`;
+}
+
 // A client absent from a completed today scan used no tokens today; that is a
 // real zero for usage. Before the first scan there is nothing to show.
 function usageFor(stats, clientId, currency) {
@@ -93,7 +103,7 @@ function usageFor(stats, clientId, currency) {
     tokens,
     costUsd,
     tokensText: formatCompactTokens(tokens, 'western', 'en'),
-    costText: formatCurrencyFromUsd(costUsd, currency)
+    costText: compactCost(costUsd, currency)
   };
 }
 

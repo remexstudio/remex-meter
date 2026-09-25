@@ -13,7 +13,7 @@
   --control-hover: rgba(0, 0, 0, 0.06);
   --accent: rgb(0, 122, 255);
   --meter-neutral: rgb(0, 122, 255);
-  --meter-warning: rgb(201, 52, 0);
+  --meter-warning: rgb(168, 78, 0);
   --meter-critical: rgb(215, 0, 21);
   --solid-background: rgb(236, 236, 236);
   --fallback-background: rgba(246, 246, 246, 0.78);
@@ -86,7 +86,6 @@ body.material-fallback .popover {
 
 .popover {
   width: 100%;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   border-radius: var(--radius);
@@ -251,7 +250,6 @@ body.material-fallback .popover {
   justify-content: space-between;
   gap: 8px;
   padding: 8px 10px 10px;
-  margin-top: auto;
 }
 
 button {

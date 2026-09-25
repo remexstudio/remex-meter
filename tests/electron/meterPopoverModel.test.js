@@ -6,7 +6,6 @@ const test = require('node:test');
 const { buildMeterPopoverModel, orderedTools } = require('../../src/electron/meterPopoverModel');
 const { DEFAULT_CLIENTS } = require('../../src/shared/clientTracking');
 const { DEFAULT_LIMIT_PROVIDER_IDS } = require('../../src/shared/limits/providers');
-const { formatCurrencyFromUsd } = require('../../src/shared/currency');
 
 const SIX = ['cursor', 'grok', 'claude', 'codex', 'opencode', 'dsh'];
 const defaults = { clients: DEFAULT_CLIENTS, limitProviders: DEFAULT_LIMIT_PROVIDER_IDS.join(','), currency: 'USD' };
@@ -50,8 +49,15 @@ test('usage and limits stay separate facts', () => {
   assert.equal(claude.usage.tokens, 12_345);
   assert.equal(claude.usage.costUsd, 1.5);
   assert.equal(claude.usage.tokensText, '12.3K');
-  assert.equal(claude.usage.costText, formatCurrencyFromUsd(1.5, 'USD'));
+  assert.equal(claude.usage.costText, '$1.50');
   assert.deepEqual(claude.quota.groups[0].rows, [{ type: 'meter', label: 'Session', usedPercent: 30, resetsAt: null }]);
+});
+
+test('cost is shown to the cent, with tiny amounts marked instead of rounded to zero', () => {
+  const stats = { periods: { today: { clients: { cursor: 10, grok: 10 }, clientCosts: { cursor: 0.004, grok: 0 } } } };
+  const model = buildMeterPopoverModel({ stats, settings: defaults });
+  assert.equal(module(model, 'cursor').usage.costText, '<$0.01');
+  assert.equal(module(model, 'grok').usage.costText, '$0.00');
 });
 
 test('each provider window is its own meter with the exact provider value, never summed', () => {
