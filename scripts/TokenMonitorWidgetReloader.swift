@@ -27,7 +27,7 @@ if Array(CommandLine.arguments.dropFirst()) == ["--mode", "register-host"] {
     registerContainingHost()
 }
 
-let kind = CommandLine.arguments.dropFirst().first ?? "com.tokenmonitor.dashboard"
+let kind = CommandLine.arguments.dropFirst().first ?? "studio.remex.meter.dashboard"
 let kinds = [kind, "\(kind).summary", "\(kind).activity", "\(kind).breakdown", "\(kind).quota"]
 
 if #available(macOS 14.0, *) {

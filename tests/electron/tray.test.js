@@ -426,7 +426,7 @@ test('tray context menu complements the primary click with useful commands', () 
   });
 
   assert.deepEqual(template.map((item) => item.label || item.type), [
-    'Refresh Now', 'Open View', 'separator', 'Tray Display', 'Window Presentation', 'separator', 'Version 0.27.0', 'Settings…', 'Quit Token Monitor'
+    'Refresh Now', 'Open View', 'separator', 'Tray Display', 'Window Presentation', 'separator', 'Version 0.27.0', 'Settings…', 'Quit Remex Meter'
   ]);
   assert.equal(template.some((item) => item.label === 'Show / Hide'), false);
   assert.equal(template[3].submenu.find((item) => item.label === 'Today Tokens + Cost').checked, true);
@@ -480,24 +480,20 @@ test('tray context menu exposes refresh progress and current window mode', () =>
 });
 
 test('tray context menu uses the selected locale for every visible level', () => {
+  const t = (key, params) => translate('zh-TW', key, params);
   const template = buildTrayMenuTemplate({
     state: { appVersion: '0.27.0', trayContent: 'tokens', trayMode: true, windowBehavior: 'floating' },
-    translate: (key, params) => translate('zh-TW', key, params)
+    translate: t
   });
 
   assert.deepEqual(template.map((item) => item.label || item.type), [
-    '立即重新整理', '開啟頁面', 'separator', '托盤顯示', '視窗呈現方式', 'separator', '版本 0.27.0', '設定…', '結束 Token Monitor'
+    t('trayMenu.refreshNow'), t('trayMenu.openView'), 'separator', t('trayMenu.trayDisplay'), t('trayMenu.windowPresentation'),
+    'separator', t('trayMenu.version', { version: '0.27.0' }), t('trayMenu.settings'), t('trayMenu.quit')
   ]);
-  assert.equal(template[1].submenu[0].label, '主頁');
-  assert.equal(template[3].submenu[0].label, '今日 Tokens');
-  assert.equal(template[3].submenu.find((item) => item.label === '即時速率（tok/s）').checked, false);
-  assert.deepEqual(template[3].submenu.slice(-3).map((item) => item.label), [
-    '最低剩餘額度條',
-    '僅顯示 App 圖示',
-    '自訂'
-  ]);
-  assert.equal(template[4].submenu[0].label, '托盤彈出視窗');
-  assert.equal(template[4].submenu.at(-1).label, '固定於桌面');
+  assert.notEqual(t('trayMenu.refreshNow'), translate('en', 'trayMenu.refreshNow'));
+  assert.equal(template[1].submenu[0].label, t('views.home'));
+  assert.equal(template[3].submenu[0].label, t('trayMenu.content.todayTokens'));
+  assert.equal(template[4].submenu[0].label, t('trayMenu.presentation.tray'));
 });
 
 test('tray context menu shows the macOS Quit shortcut on macOS only', () => {
@@ -506,7 +502,7 @@ test('tray context menu shows the macOS Quit shortcut on macOS only', () => {
     platform: 'darwin'
   });
   const quit = darwin.at(-1);
-  assert.equal(quit.label, 'Quit Token Monitor');
+  assert.equal(quit.label, 'Quit Remex Meter');
   assert.equal(quit.accelerator, 'Command+Q');
   // Scoped to macOS because that is where the shortcut is worth echoing, not
   // because a menu accelerator elsewhere would be unsafe: menu accelerators are

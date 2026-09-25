@@ -142,7 +142,7 @@ function authError(status, message) {
 // collector logs, and it must say whether signing in again could help.
 function sessionUnavailableMessage(reason) {
   if (reason === WORKBUDDY_SESSION_READ_REASONS.encrypted) {
-    return 'WorkBuddy app credential is encrypted and cannot be read by Token Monitor';
+    return 'WorkBuddy app credential is encrypted and cannot be read by Remex Meter';
   }
   if (reason === WORKBUDDY_SESSION_READ_REASONS.expired) {
     return 'WorkBuddy app session has expired';

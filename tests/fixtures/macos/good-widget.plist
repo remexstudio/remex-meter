@@ -17,13 +17,13 @@
   <key>Entitlements</key>
   <dict>
     <key>application-identifier</key>
-    <string>ABCDE12345.com.example.tokenmonitor.widget</string>
+    <string>ABCDE12345.studio.remex.meter.widget</string>
     <key>com.apple.application-identifier</key>
-    <string>ABCDE12345.com.example.tokenmonitor.widget</string>
+    <string>ABCDE12345.studio.remex.meter.widget</string>
     <key>com.apple.developer.team-identifier</key>
     <string>ABCDE12345</string>
     <key>com.apple.security.application-groups</key>
-    <array><string>group.com.example.tokenmonitor</string></array>
+    <array><string>group.studio.remex.meter</string></array>
     <key>get-task-allow</key>
     <false/>
   </dict>

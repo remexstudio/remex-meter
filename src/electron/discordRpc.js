@@ -5,7 +5,7 @@ const { formatCurrencyFromUsd, normalizeCurrency } = require('../shared/currency
 const compactTokens = require('../shared/compactTokens');
 
 const CLIENT_ID = '1507034330436862062';
-const GITHUB_URL = 'https://github.com/Javis603/token-monitor';
+const GITHUB_URL = 'https://github.com/remexstudio/remex-meter';
 const KNOWN_CLIENT_ASSETS = new Set([
   'claude', 'codex', 'opencode', 'hermes', 'openclaw', 'cursor', 'antigravity', 'cline',
   'amp', 'droid', 'kimi', 'qwen', 'grok', 'copilot', 'pi', 'omp', 'zed', 'kilo', 'commandcode', 'mimo', 'zcode', 'kiro', 'codebuddy', 'workbuddy', 'proma', 'qodercn', 'reasonix', 'dsh', 'cherrystudio', 'lmstudio', 'unsloth', 'devin',
@@ -52,12 +52,12 @@ function buildPayload(stats, currency = 'USD', compactTokenUnits = 'western', lo
   const base = {
     type: 0,
     largeImageKey: 'logo',
-    largeImageText: 'Token Monitor',
+    largeImageText: 'Remex Meter',
     startTimestamp,
     buttons: [{ label: 'View on GitHub', url: GITHUB_URL }]
   };
   if (totalTokens === 0) {
-    return { ...base, details: 'Token Monitor', state: 'No usage today' };
+    return { ...base, details: 'Remex Meter', state: 'No usage today' };
   }
   const top = topClient(today);
   const label = (top && CLIENT_LABELS[top]) || (top ? top : 'Active');

@@ -42,7 +42,7 @@ xcodebuild -project native/macos/TokenMonitorWidget.xcodeproj -scheme TokenMonit
 `npm run build:mac-widget` follows the selected target architecture (`arm64` or `x64` → `x86_64`) and stages an unsigned local Widget preview. Use `npm run pack:mac:widget` once to create the Electron host. During ordinary SwiftUI iteration, deploy into that existing app without rebuilding Electron or vendored tools:
 
 ```bash
-npm run dev:mac-widget -- --app '/absolute/path/to/Token Monitor.app'
+npm run dev:mac-widget -- --app '/absolute/path/to/Remex Meter.app'
 ```
 
 The fast path keeps persistent Xcode DerivedData, rebuilds only the arm64 Widget extension, preserves the packaged App Group and Widget bundle identifier, signs with the matching Apple Development identity, verifies that both the host and extension authorize the App Group team, re-registers the host, and relaunches it. The first run may re-sign the full Electron bundle when converting an old ad-hoc app; later runs sign only the changed extension and outer container. Use `dist:mac:widget` / `dist:mac:widget:x64` with production identifiers, profiles where required, and signing credentials for release artifacts. The packaging verifier checks the complete `.app` bundle, exact architectures, identifiers, entitlements, and embedded profiles before release handoff. The release signer signs the extension before the containing Electron app.
