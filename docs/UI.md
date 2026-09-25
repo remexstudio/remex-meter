@@ -23,7 +23,22 @@ Remex Meter is a native macOS menu-bar utility. Before changing any surface belo
 - Pool modules (`docs/POOLS.md`): Cursor Mode Pool, Cursor Other Modes, Grok Heavy Weekly, Grok Bolt Weekly — each its own meter row.
 - Meter row: pool name, percentage used (tabular numerals), a thin horizontal meter, reset time ("Resets Mon 09:00" or relative). Money windows show an amount instead of a meter.
 - States: "Unavailable", "Sign in required", "Not configured", "Stale" (with the age). Each has a symbol and text; none shows a bar.
-- Hides on blur and on Escape.
+- Hides on blur and on Escape. ⌘, opens Settings, ⌘R refreshes, ⌘Q quits.
+
+#### Implementation (Phase 1)
+
+| Piece | Path |
+|---|---|
+| Window controller: construction, anchoring, blur-hide, material swap | `src/electron/meterPopover.js` |
+| View model: modules, rows and states from the catalogs and the published stats | `src/electron/renderer/meter/popoverModel.js` |
+| Markup, generic renderer, styles | `src/electron/renderer/meter/popover.{html,js,css}` |
+| Status item glyph (template, 18 pt and @2x) | `assets/icons/meterTemplate.png`, `meterTemplate@2x.png` |
+| Status item menu | `buildMeterMenuTemplate()` in `src/electron/tray.js` |
+
+- The model is the only place that knows about pools: `POOL_DECLARATIONS` is data from `docs/POOLS.md`. In Phase 1 it declares Grok Heavy Weekly and Grok Bolt Weekly with no source, so both render as unavailable and the single upstream Grok window is not shown. Cursor windows render under their upstream labels, one meter each; mapping them onto the Cursor pool modules is Phase 2 ([issue #4](https://github.com/remexstudio/remex-meter/issues/4)).
+- Meter fills change colour at 75 % and 90 % used and add a "Running low" / "Nearly used up" line, so the threshold is never colour-only.
+- The status item glyph is a hand-drawn stand-in for `gauge.with.needle`; replace it with the SF Symbols export when it is produced on a Mac.
+- The inherited widget window is still the Settings surface in Phase 1: on macOS a fresh install defaults to tray mode, so it stays hidden until Settings… opens it. Restyling it is later work.
 
 ### Settings
 
@@ -45,7 +60,7 @@ Remex Meter is a native macOS menu-bar utility. Before changing any surface belo
 
 ## Materials
 
-1. Native vibrancy on the popover and settings (`vibrancy` with `visualEffectState: 'active'`), transparent page background.
+1. Native vibrancy on the popover and settings (`vibrancy` with `visualEffectState: 'active'`), transparent page background. The popover uses the `popover` material; the inherited Settings window still uses `hud`.
 2. CSS `backdrop-filter` blur only where native vibrancy is unavailable; never both.
 3. Reduce Transparency on → no material, no blur, solid system background.
 

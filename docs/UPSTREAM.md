@@ -18,14 +18,51 @@ Phase 0 changes to inherited files:
 - `AGENTS.md` gained the Remex Meter rules on top; the upstream guide below them is unchanged.
 - `.gitignore` tracks `.agents/skills/`; `eslint.config.js` ignores `.agents/**`.
 
-Nothing under `src/`, `native/`, `worker/` or `scripts/` changed.
+Nothing under `src/`, `native/`, `worker/` or `scripts/` changed in Phase 0.
 
-### Deferred to Phase 1
+## Phase 1 changes
 
-Package and bundle identity is **not** renamed yet ([issue #3](https://github.com/remexstudio/remex-meter/issues/3)). `productName`, `appId` (`com.javis.tokenmonitor`), `artifactName`, `APP_NAME` in `src/electron/main.js` (which sets `userData`), the widget identifiers, and the macOS release scripts are pinned by release-artifact, signing, widget-verifier and updater tests, so they move together in one reviewed change. Two inherited behaviours matter until then:
+Phase 1 ([issue #3](https://github.com/remexstudio/remex-meter/issues/3)) moved the identity, the platform, the enabled tools and the menu-bar shell. These are the decisions an upstream merge has to respect.
 
-- `src/shared/appUpdater.js` checks releases of `Javis603/token-monitor`. A build from this tree would offer upstream releases as updates.
-- The renderer picks its locale from the system languages, so a Chinese-language system shows the inherited Chinese UI. Remex Meter's default is English.
+### Identity
+
+| Surface | Remex Meter value |
+|---|---|
+| `package.json` `name` / `productName` / `build.productName` | `remex-meter` / Remex Meter / Remex Meter |
+| `build.appId` | `studio.remex.meter` |
+| mac `artifactName` | `Remex-Meter-${version}-arm64.${ext}` (DMG and the updater zip) |
+| `repository` / `homepage` / `bugs` / `build.publish` | `remexstudio/remex-meter` |
+| `APP_NAME` (`src/electron/main.js`) and `sharedDataDir()` | Remex Meter |
+| About panel | `app.setAboutPanelOptions()`: Remex Meter · Remex Studio |
+| Widget defaults | App Group `group.studio.remex.meter`, widget bundle id `studio.remex.meter.widget`, widget kind `studio.remex.meter.dashboard` |
+
+- **Fresh `userData`.** `app.setName(APP_NAME)` now resolves `~/Library/Application Support/Remex Meter`. Nothing is migrated from the upstream `Token Monitor` directory: this is a clean product, so settings, credentials and archives start empty.
+- **Updater.** `src/shared/appUpdater.js` and `build.publish` point at `remexstudio/remex-meter`. There are no releases there yet, so a check reports that no release was found; it can never offer an upstream Token Monitor release.
+- **Outbound identity.** Provider `User-Agent`, OpenRouter `HTTP-Referer` / `X-OpenRouter-Title`, the Codex app-server `clientInfo`, the service-status and Codex reset-forecast agents, the tokscale updater and Discord Rich Presence name Remex Meter and link `remexstudio/remex-meter`. The `openExternal` allowlist admits `github.com/remexstudio/remex-meter` and no longer admits the upstream repository or website.
+- **Inherited translations.** The English table was renamed in place. The zh-TW, zh-CN, ko and ja tables are kept verbatim (no new Chinese in Remex Meter commits); `translate()` substitutes the product name at lookup time. The default `language` setting is `en`, so a Chinese system no longer selects the inherited Chinese UI.
+
+### Internal names that stay
+
+These are compatibility or build-internal names, not product names. Renaming them buys nothing for users and would break external callers or the native build:
+
+- `TOKEN_MONITOR_*` environment variables (runtime, packaging and widget build inputs) and every settings key.
+- The Hub wire surface: `x-token-monitor-*` headers, endpoints and the device record.
+- The preload bridge `window.tokenMonitor` and the `TokenMonitor*` renderer globals.
+- The Xcode project, target and scheme `TokenMonitorWidget`, the `TokenMonitorWidgetReloader` helper and the `token-monitor-widget.json` resource. The bundle identifiers above are what macOS sees.
+- Export file names (`token-monitor-export.json` and the CSVs) and temporary-directory prefixes.
+- The pinned tokscale fork release (`Javis603/tokscale`, `scripts/vendor/tokscale.json`), which is a real upstream dependency.
+
+### Platform
+
+macOS on Apple Silicon is the only packaged target. The Windows, Linux and Intel scripts and electron-builder sections were removed, together with the upstream `release.yml`, `pages.yml`, `star-history.yml`, `FUNDING.yml`, SignPath and NSIS assets and the release-only helper scripts. `ci.yml` keeps Node coverage on Linux and macOS and the arm64 widget build; `vendor-tokscale.yml` runs on macOS arm64. Windows and Linux branches in `src/` are left in place until a later phase removes them. A Remex Meter release workflow is future work.
+
+### Six tools
+
+`CLIENT_CATALOG` and `LIMIT_PROVIDER_CATALOG` lead with Cursor, Grok, Claude Code, Codex, OpenCode and DeepSeek (`dsh` → `deepseek`). Every other inherited adapter stays wired and selectable in Settings but carries `defaultTracked: false` / `defaultEnabled: false`, so a fresh install scans and probes only the six (`DEFAULT_CLIENT_IDS`, `DEFAULT_LIMIT_PROVIDER_IDS`). The first-run limits seed still narrows to the detected subset of those six. The hand-wired registration tables were reordered to the new catalog order, as `docs/providers/README.md` requires, and the partition-invariant tests are unchanged.
+
+### Menu bar shell
+
+On macOS the tray click opens the Meter popover (`src/electron/meterPopover.js`, renderer in `src/electron/renderer/meter/`) instead of the inherited widget window. Fresh installs default to `trayMode: true` so that window stays hidden until Settings opens it. The popover reuses the existing preload bridge and the existing `stats:push`, `settings:push` and `window:*` channels; it adds `settings:open`, `app:quit` and `window:preferredHeight` sends within those families. See `docs/UI.md`.
 
 ## Runtime boundaries
 
@@ -37,7 +74,7 @@ Package and bundle identity is **not** renamed yet ([issue #3](https://github.co
 | Cloudflare Worker Hub | `worker/` | Same as the Node Hub. `worker/` cannot import above itself; its `src/shared/` copies are generated by `npm run sync:worker`. |
 | Native WidgetKit extension | `native/macos/` | Optional. Built only by `pack:mac:widget` / `dist:mac:widget*`. Reads the App Group snapshot; never collects data itself. |
 
-All runtimes share `src/shared/`. Settings keys, env vars (`TOKEN_MONITOR_*`), CLI flags, Hub endpoints and the device wire shape are compatibility surfaces upstream; Remex Meter inherits them as internal names until Phase 1 decides otherwise.
+All runtimes share `src/shared/`. Settings keys, env vars (`TOKEN_MONITOR_*`), CLI flags, Hub endpoints and the device wire shape are compatibility surfaces upstream; Remex Meter keeps them as internal names (see Phase 1 changes above).
 
 ## Usage plane: tokscale
 
@@ -72,7 +109,7 @@ Usage (tokens, cost) comes from tokscale scans of local logs. Limits come from p
 ## Catalogs and provider registration
 
 - `CLIENT_CATALOG` (`src/shared/clientCatalog.js`): tracked-client identity and display order (id, label, `defaultTracked`, `locallyParsed`). UMD, loaded by the renderer as a script and by Node via `require`.
-- `LIMIT_PROVIDER_CATALOG` (`src/shared/limits/providers.js`): limits-provider identity, fresh-install order, `label` / `settingsLabel`. Part of the portable Hub core: adding, reordering or renaming a provider moves the Hub build marker (`npm run update:hub-build`).
+- `LIMIT_PROVIDER_CATALOG` (`src/shared/limits/providers.js`): limits-provider identity, fresh-install order, `label` / `settingsLabel`, `defaultEnabled`. Part of the portable Hub core: adding, reordering or renaming a provider moves the Hub build marker (`npm run update:hub-build`).
 - `VENDOR_PRESENTATION` (`src/shared/vendorPresentation.js`): brand colour and artwork per id; the macOS widget reads names, colours and artwork from its snapshot.
 - The full touch-point checklists for adding or renaming a client or provider are in `docs/providers/README.md`. Follow them; do not hand-roll a Remex Meter registry.
 
@@ -93,7 +130,7 @@ Reference: `docs/providers/cursor.md`, `src/shared/providers/cursor/{limits,prob
 
 Reference: `src/shared/providers/grok/limits.js`.
 
-- **Usage:** tracked client `grok` (label "Grok Build"), parsed by tokscale from `~/.grok/sessions` and `~/.grok/logs/unified.jsonl` (`GROK_HOME` overrides the root).
+- **Usage:** tracked client `grok` (label "Grok"; upstream calls it "Grok Build"), parsed by tokscale from `~/.grok/sessions` and `~/.grok/logs/unified.jsonl` (`GROK_HOME` overrides the root).
 - **Credential precedence:** explicit setting → `GROK_BEARER_TOKEN` env → `~/.grok/auth.json` (OIDC scope preferred, then legacy `/sign-in`, then any keyed entry). No GUI credential field.
 - **Limits:** when the credential came from `auth.json`, first the Grok CLI (`grok agent stdio`, JSON-RPC `initialize` then `x.ai/billing`, 5 s timeout); on failure other than unauthorized, the grok.com gRPC-web endpoint `grok_api_v2.GrokBuildBilling/GetGrokCreditsConfig` with the bearer token, with one retry on transient network errors.
 - **Shape today:** both paths produce **one** `billing` window from a single credit percentage, labelled `Weekly` / `Monthly` / `Billing` from the period length. There is no Heavy vs Bolt split in the upstream parser. Remex Meter's two Grok pools therefore have no source yet ([issue #4](https://github.com/remexstudio/remex-meter/issues/4)).

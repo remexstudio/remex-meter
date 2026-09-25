@@ -28,7 +28,7 @@ Use exactly these names. Do not invent alternatives.
 | DMG | `Remex-Meter-${version}-arm64.dmg` |
 | About | Remex Meter · Remex Studio |
 
-Never use "Token Monitor", "Remex Monitor", "remex-monitor", "token-monitor", "AI Usage" or "Quota App" as a product, repository, bundle or UI name. "Token Monitor" / `Javis603/token-monitor` may appear only as upstream attribution. The inherited code still carries upstream names (package metadata, `APP_NAME`, `TOKEN_MONITOR_*` env vars, `TokenMonitorWidget`); they are renamed deliberately in Phase 1 ([issue #3](https://github.com/remexstudio/remex-meter/issues/3)), not piecemeal.
+Never use "Token Monitor", "Remex Monitor", "remex-monitor", "token-monitor", "AI Usage" or "Quota App" as a product, repository, bundle or UI name. "Token Monitor" / `Javis603/token-monitor` may appear only as upstream attribution. Product identity was renamed in Phase 1 ([issue #3](https://github.com/remexstudio/remex-meter/issues/3)). Some upstream names deliberately stay as internal compatibility names (`TOKEN_MONITOR_*` env vars, settings keys, the Hub wire surface, `window.tokenMonitor`, the `TokenMonitorWidget` Xcode target); the list and the reasons are in `docs/UPSTREAM.md` → Phase 1 changes. Do not rename them piecemeal.
 
 ## Language
 
@@ -49,7 +49,7 @@ Details and rationale are in `docs/PRODUCT.md`, `docs/POOLS.md`, `docs/UPSTREAM.
 - **Catalog-driven UI.** Tools, order, labels and marks come from `CLIENT_CATALOG`, `LIMIT_PROVIDER_CATALOG` and `VENDOR_PRESENTATION`; no provider-specific markup.
 - **Real vibrancy.** Native material first; CSS blur only as a fallback.
 - **macOS Apple Silicon only.** Do not enable Windows or Linux builds or add new branches for them.
-- **Six tools.** Cursor, Grok, Claude Code, Codex, OpenCode, DeepSeek — enabled in Phase 1. Until then the inherited tool list is unchanged.
+- **Six tools.** Cursor, Grok, Claude Code, Codex, OpenCode, DeepSeek are the only tools enabled on a fresh install; they lead both catalogs. Other inherited adapters stay wired but off by default.
 - **No new data architecture.** Adapt tokscale, the limits runtime and the provider registry; do not add a parallel collector, store or IPC family.
 
 ## Remex Meter documents
