@@ -47,20 +47,17 @@ test('resolved catalog entries expose boolean tracking flags', () => {
   }
 });
 
-test('derived KNOWN_CLIENTS keeps the established id order', () => {
+test('derived KNOWN_CLIENTS puts the six Remex Meter tools first', () => {
   assert.equal(KNOWN_CLIENTS, CLIENT_IDS.join(','));
   assert.equal(
     KNOWN_CLIENTS,
-    'claude,codex,opencode,hermes,openclaw,cursor,antigravity,cline,amp,droid,kimi,qwen,grok,copilot,pi,omp,zed,kilo,commandcode,mimo,zcode,kiro,codebuddy,workbuddy,proma,qodercn,reasonix,dsh,cherrystudio,lmstudio,unsloth,devin'
+    'cursor,grok,claude,codex,opencode,dsh,hermes,openclaw,antigravity,cline,amp,droid,kimi,qwen,copilot,pi,omp,zed,kilo,commandcode,mimo,zcode,kiro,codebuddy,workbuddy,proma,qodercn,reasonix,cherrystudio,lmstudio,unsloth,devin'
   );
 });
 
-test('derived DEFAULT_CLIENTS keeps the existing default-tracked CSV', () => {
+test('derived DEFAULT_CLIENTS is exactly the six Remex Meter tools', () => {
   assert.equal(DEFAULT_CLIENTS, DEFAULT_CLIENT_IDS.join(','));
-  assert.equal(
-    DEFAULT_CLIENTS,
-    'claude,codex,opencode,hermes,openclaw,cursor,antigravity,cline,amp,droid,kimi,qwen,grok,copilot,pi,omp,zed,kilo,commandcode,mimo,zcode,kiro,codebuddy,workbuddy,proma,reasonix,dsh,cherrystudio,lmstudio,unsloth,devin'
-  );
+  assert.equal(DEFAULT_CLIENTS, 'cursor,grok,claude,codex,opencode,dsh');
 });
 
 test('derived PARSE_LOCAL_CLIENTS still lists exactly the local adapters', () => {
