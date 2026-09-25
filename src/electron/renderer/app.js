@@ -63,10 +63,10 @@ function iconKindFor(rowData, breakdown) {
 }
 
 const LIMIT_PROVIDER_ACCOUNT_GROUP_IDS = {
+  cursor: 'cursorAccountGroup',
   claude: 'claudeAccountGroup',
   codex: 'codexAccountGroup',
   opencode: 'opencodeCookieGroup',
-  cursor: 'cursorAccountGroup',
   antigravity: 'antigravityAccountGroup',
   kimi: 'kimiAccountGroup',
   copilot: 'copilotAccountGroup',
@@ -83,10 +83,10 @@ const LIMIT_PROVIDER_ACCOUNT_GROUP_IDS = {
   thirdparty: 'thirdpartyAccountGroup'
 };
 const LIMIT_PROVIDER_ACCOUNT_STATUS_IDS = {
+  cursor: 'cursorAccountStatus',
   claude: 'claudeAccountStatus',
   codex: 'codexAccountStatus',
   opencode: 'opencodeCookieStatus',
-  cursor: 'cursorAccountStatus',
   antigravity: 'antigravityAccountStatus',
   kimi: 'kimiAccountStatus',
   copilot: 'copilotApiTokenStatus',

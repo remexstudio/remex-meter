@@ -18,14 +18,15 @@
   };
 
   const PROVIDER_SOURCE_LABELS = {
+    cursor: { web: 'Web' },
+    grok: { rpc: 'CLI', web: 'Web' },
     claude: { oauth: 'OAuth', cli: 'CLI', web: 'Web' },
     codex: { rpc: 'RPC' },
     opencode: { local: 'Local', web: 'Web', api: 'API' },
-    cursor: { web: 'Web' },
+    deepseek: { api: 'API' },
     antigravity: { oauth: 'OAuth', rpc: 'RPC' },
     factory: { api: 'API' },
     kimi: { api: 'API', web: 'Web' },
-    grok: { rpc: 'CLI', web: 'Web' },
     copilot: { api: 'API' },
     zed: { web: 'Web' },
     commandcode: { web: 'Web' },
@@ -35,7 +36,6 @@
     kiro: { cli: 'CLI' },
     workbuddy: { local: 'Local', api: 'API' },
     qoder: { web: 'Web' },
-    deepseek: { api: 'API' },
     devin: { web: 'Web' },
     openrouter: { api: 'API' },
     minimax: { api: 'API' },
@@ -54,15 +54,16 @@
   };
 
   const CAPABILITY_TAGS = {
+    cursor: ['Auto', 'Web'],
+    grok: ['Auto', 'CLI/Web'],
     claude: ['Auto', 'OAuth/CLI', 'Web'],
     codex: ['Auto', 'OAuth/App/CLI'],
     opencode: ['Auto', 'API/Web'],
-    cursor: ['Auto', 'Web'],
+    deepseek: ['Pay-as-you-go', 'API key'],
     antigravity: ['Auto', 'OAuth/App/CLI'],
     cline: ['Auto', 'Desktop app', 'CLI'],
     factory: ['Auto', 'API key'],
     kimi: ['Coding Plan', 'Web/API'],
-    grok: ['Auto', 'CLI/Web'],
     copilot: ['Manual login', 'API'],
     zed: ['Manual login', 'Web'],
     commandcode: ['Manual login', 'Web'],
@@ -72,7 +73,6 @@
     kiro: ['Auto', 'CLI'],
     workbuddy: ['Auto', 'Desktop app'],
     qoder: ['Manual login', 'Web'],
-    deepseek: ['Pay-as-you-go', 'API key'],
     devin: ['Manual login', 'Web'],
     typesafe: ['Manual login', 'Web'],
     openrouter: ['Pay-as-you-go', 'API key'],

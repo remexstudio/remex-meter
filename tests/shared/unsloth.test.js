@@ -38,8 +38,8 @@ test('Unsloth source resolution follows the released Tokscale environment overri
   assert.equal(clientSourceRoots('codex', { homeDir: home, env: {} }).unsloth, undefined);
 });
 
-test('Unsloth is a normal Tokscale client without changing saved selections', () => {
-  assert.ok(DEFAULT_CLIENTS.split(',').includes('unsloth'));
+test('Unsloth is an opt-in Tokscale client without changing saved selections', () => {
+  assert.ok(!DEFAULT_CLIENTS.split(',').includes('unsloth'));
   assert.ok(!PARSE_LOCAL_CLIENTS.includes('unsloth'));
   assert.equal(clientsCsvForSetting('codex,lmstudio'), 'codex,lmstudio');
   assert.equal(clientsCsvForSetting('codex,unsloth'), 'codex,unsloth');
