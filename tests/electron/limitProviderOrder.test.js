@@ -25,19 +25,20 @@ const providers = [
 // catalog became the single source for both the ids and the renderer's list,
 // this hand-written copy is the only independent check left on that order —
 // comparing the catalog against anything derived from it proves nothing.
-test('default provider order follows tracked tools, named services, then third-party fallback', () => {
+test('default provider order puts the six Remex Meter tools first, then the inherited providers', () => {
   const ids = LIMIT_PROVIDER_CATALOG.map((provider) => provider.id);
 
   assert.deepEqual(ids, [
+    'cursor',
+    'grok',
     'claude',
     'codex',
     'opencode',
-    'cursor',
+    'deepseek',
     'antigravity',
     'cline',
     'factory',
     'kimi',
-    'grok',
     'copilot',
     'zed',
     'commandcode',
@@ -47,7 +48,6 @@ test('default provider order follows tracked tools, named services, then third-p
     'kiro',
     'workbuddy',
     'qoder',
-    'deepseek',
     'devin',
     'typesafe',
     'openrouter',
@@ -139,7 +139,7 @@ test('provider registration and account layout order follows the catalog', () =>
   check([...html.matchAll(/^ {12}<div id="(\w+)(?:AccountGroup|CookieGroup)"/gm)]
     .map((match) => match[1]).filter((id) => canonical.includes(id)), 'HTML account groups');
   const { limitAccountFormsForRenderer } = require('../../src/electron/limits/accountSettings');
-  assert.deepEqual(limitAccountFormsForRenderer().map((form) => form.id), ['cline', 'factory', 'zed', 'commandcode', 'deepseek', 'typesafe', 'minimax']);
+  assert.deepEqual(limitAccountFormsForRenderer().map((form) => form.id), ['deepseek', 'cline', 'factory', 'zed', 'commandcode', 'typesafe', 'minimax']);
   const collector = read('src/shared/limits/collector.js');
   assert.match(collector, /\.\.\.LIMIT_PROVIDER_FETCHERS/);
 });

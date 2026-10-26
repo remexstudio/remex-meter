@@ -166,10 +166,11 @@ function grpcBillingResponse({ usedPercent = 42.5, resetEpoch = 1_800_000_000 } 
   };
 }
 
-test('parseLimitProviders includes grok and ollama in the default provider set', () => {
+test('parseLimitProviders enables grok by default and accepts ollama explicitly', () => {
   const providers = parseLimitProviders();
   assert.ok(providers.includes('grok'));
-  assert.ok(providers.includes('ollama'));
+  assert.ok(!providers.includes('ollama'));
+  assert.deepEqual(parseLimitProviders('ollama'), ['ollama']);
 });
 
 test('grokCredential reads GROK_BEARER_TOKEN from env', () => {

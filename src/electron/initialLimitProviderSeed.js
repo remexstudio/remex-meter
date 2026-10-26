@@ -1,6 +1,6 @@
 'use strict';
 
-const { limitProvidersForDetectedClients } = require('../shared/limits/providers');
+const { DEFAULT_LIMIT_PROVIDER_IDS } = require('../shared/limits/providers');
 
 function applyInitialLimitProviderSeed(pending, summary, deps = {}) {
   const healthClients = summary?.clientHealth?.clients;
@@ -15,9 +15,9 @@ function applyInitialLimitProviderSeed(pending, summary, deps = {}) {
   }
 
   const previousProviders = deps.settings.limitProviders;
-  const detectedProviders = limitProvidersForDetectedClients(summary.clientHealth);
-  // Keep the Limits view discoverable on a source-free first run.
-  deps.settings.limitProviders = (detectedProviders.length > 0 ? detectedProviders : ['codex']).join(',');
+  // Remex Meter enables its six tools on a first run whether or not a local
+  // source was detected yet; each one reports its own "not configured" state.
+  deps.settings.limitProviders = DEFAULT_LIMIT_PROVIDER_IDS.join(',');
   try {
     if (deps.saveSettings?.() !== true) {
       deps.settings.limitProviders = previousProviders;

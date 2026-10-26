@@ -1,6 +1,6 @@
 'use strict';
 
-const { LIMIT_PROVIDER_IDS } = require('./providers');
+const { DEFAULT_LIMIT_PROVIDER_IDS, LIMIT_PROVIDER_IDS } = require('./providers');
 const { LIMIT_PROVIDER_FETCHERS, limitProviderEntry } = require('./registry');
 const {
   DEFAULT_LIMITS_REFRESH_MS,
@@ -95,9 +95,9 @@ const DEFAULT_PROVIDER_PHYSICAL_BOUND_MS = 120_000;
 const PROVIDER_CLEANUP_GRACE_MS = 5_000;
 const LIMIT_REFRESH_VALUES = new Set([60_000, 120_000, 300_000, 900_000, 1_800_000]);
 function parseLimitProviders(value) {
-  // Omission keeps the historical default; an explicitly empty setting means
-  // that no provider is enabled and must survive persistence/reload.
-  const source = value === undefined || value === null ? LIMIT_PROVIDER_IDS : value;
+  // Omission means the fresh-install default set; an explicitly empty setting
+  // means that no provider is enabled and must survive persistence/reload.
+  const source = value === undefined || value === null ? DEFAULT_LIMIT_PROVIDER_IDS : value;
   const raw = Array.isArray(source) ? source : String(source).split(',');
   const seen = new Set();
   const providers = [];

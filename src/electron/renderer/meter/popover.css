@@ -1,0 +1,302 @@
+/* Remex Meter popover. System type, system-like colours, hairline groups.
+   The background is transparent so the native `popover` material shows
+   through; `.material-solid` (Reduce Transparency) and `.material-fallback`
+   (no native material) are the only places that paint one. */
+
+:root {
+  color-scheme: light dark;
+  --label: rgba(0, 0, 0, 0.85);
+  --secondary-label: rgba(0, 0, 0, 0.55);
+  --tertiary-label: rgba(0, 0, 0, 0.35);
+  --separator: rgba(0, 0, 0, 0.1);
+  --track: rgba(0, 0, 0, 0.1);
+  --control-hover: rgba(0, 0, 0, 0.06);
+  --accent: rgb(0, 122, 255);
+  --meter-neutral: rgb(0, 122, 255);
+  --meter-warning: rgb(168, 78, 0);
+  --meter-critical: rgb(215, 0, 21);
+  --solid-background: rgb(236, 236, 236);
+  --fallback-background: rgba(246, 246, 246, 0.78);
+  --focus-ring: rgba(0, 122, 255, 0.6);
+  --radius: 10px;
+}
+
+@supports (color: AccentColor) {
+  :root { --accent: AccentColor; --meter-neutral: AccentColor; --focus-ring: AccentColor; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --label: rgba(255, 255, 255, 0.85);
+    --secondary-label: rgba(255, 255, 255, 0.55);
+    --tertiary-label: rgba(255, 255, 255, 0.3);
+    --separator: rgba(255, 255, 255, 0.12);
+    --track: rgba(255, 255, 255, 0.14);
+    --control-hover: rgba(255, 255, 255, 0.08);
+    --accent: rgb(10, 132, 255);
+    --meter-neutral: rgb(10, 132, 255);
+    --meter-warning: rgb(255, 159, 10);
+    --meter-critical: rgb(255, 105, 97);
+    --solid-background: rgb(40, 40, 40);
+    --fallback-background: rgba(40, 40, 40, 0.8);
+    --focus-ring: rgba(10, 132, 255, 0.7);
+  }
+}
+
+.contrast-more {
+  --label: rgb(0, 0, 0);
+  --secondary-label: rgba(0, 0, 0, 0.75);
+  --separator: rgba(0, 0, 0, 0.45);
+  --track: rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-color-scheme: dark) {
+  .contrast-more {
+    --label: rgb(255, 255, 255);
+    --secondary-label: rgba(255, 255, 255, 0.8);
+    --separator: rgba(255, 255, 255, 0.5);
+    --track: rgba(255, 255, 255, 0.4);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+body {
+  font: 13px/1.35 -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  color: var(--label);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+  overflow-x: hidden;
+}
+
+body.material-solid .popover { background: var(--solid-background); }
+
+body.material-fallback .popover {
+  background: var(--fallback-background);
+  backdrop-filter: blur(24px) saturate(1.6);
+}
+
+.popover {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius);
+  outline: none;
+}
+
+.contrast-more .popover { box-shadow: inset 0 0 0 1px var(--separator); }
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 14px 10px 16px;
+}
+
+.header-text { flex: 1; min-width: 0; }
+
+.title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.secondary {
+  margin: 0;
+  font-size: 11px;
+  color: var(--secondary-label);
+}
+
+.modules {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--separator);
+}
+
+.module {
+  padding: 10px 16px 11px;
+  border-bottom: 1px solid var(--separator);
+}
+
+.module-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 20px;
+}
+
+.mark {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  background-color: var(--label);
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+
+.module-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 590;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.usage {
+  flex: none;
+  font-size: 11px;
+  color: var(--secondary-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.rows { margin-top: 6px; display: flex; flex-direction: column; gap: 8px; }
+
+.group-caption {
+  font-size: 11px;
+  color: var(--secondary-label);
+  margin-top: 2px;
+}
+
+.row { display: flex; flex-direction: column; gap: 4px; }
+
+.row-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.row-label {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-value {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.row-reset {
+  font-size: 11px;
+  color: var(--secondary-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.meter {
+  position: relative;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.contrast-more .meter { height: 6px; box-shadow: inset 0 0 0 1px var(--label); }
+
+.meter-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: var(--meter-neutral);
+  transition: width 180ms ease-out;
+}
+
+.level-warning .meter-fill { background: var(--meter-warning); }
+.level-critical .meter-fill { background: var(--meter-critical); }
+.level-warning .row-value { color: var(--meter-warning); }
+.level-critical .row-value { color: var(--meter-critical); }
+
+.state {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--secondary-label);
+}
+
+.state strong { font-weight: 590; color: var(--label); }
+
+.symbol {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.row-value .symbol { width: 12px; height: 12px; }
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px 10px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  margin: 0;
+  border-radius: 6px;
+}
+
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  color: var(--secondary-label);
+}
+
+.icon-button .symbol { width: 16px; height: 16px; }
+
+.text-button {
+  min-height: 24px;
+  padding: 3px 8px;
+}
+
+.icon-button:hover, .text-button:hover { background: var(--control-hover); color: var(--label); }
+
+button:focus-visible, .popover:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.refreshing .icon-button#refreshButton .symbol { animation: spin 900ms linear infinite; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.motion-reduced *, .motion-reduced *::before, .motion-reduced *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+.empty {
+  padding: 16px;
+  color: var(--secondary-label);
+}

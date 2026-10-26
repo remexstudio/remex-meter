@@ -8,11 +8,12 @@ The Remex Meter rules below come first. The engineering guide after them is inhe
 
 Load these from `.agents/skills/` **before** any change to the menu bar extra, the tray popover, quota modules, native materials/vibrancy, settings UI, app icons, SF Symbols or the Swift widget:
 
-1. `apple-menubar-monitor` — Remex Meter's house guide for the menu bar, popover, pools, symbols and accessibility.
-2. `macos-design` — native macOS layout, interaction and visual design.
-3. `macos-menubar-app-development` — **currently blocked and not vendored** because of its license (see `.agents/skills/macos-menubar-app-development/BLOCKED.md` and [issue #2](https://github.com/remexstudio/remex-meter/issues/2)). Do not fetch or install it into this repository. Until the issue is resolved, items 1 and 2 are the required set.
+1. `apple-menubar-monitor` — Remex Meter's house guide for the menu bar, popover, pools, symbols and accessibility. It wins where the skills below disagree about this product.
+2. `macos-menubar-app-development` — status item, popover, `LSUIElement`, Settings/Quit paths and menu-bar icon rules.
+3. `macos-design` — native macOS layout, interaction and visual design.
+4. `macos-gui-app-design` — Mac GUI conventions, materials, accessibility and distribution checks.
 
-Load `apple-design` as well for design reviews and accessibility audits. `macos-gui-app-design` is blocked for the same reason as item 3. Vendored skill pins and license status are in `.agents/skills/VENDORED.md`; never hand-edit vendored skill files.
+Load `apple-design` as well for design reviews and accessibility audits. The two Swift-oriented skills (items 2 and 4) describe native starters; in this repository apply their rules to the Electron shell and never add a second Swift status item (see `apple-menubar-monitor`). Vendored skill pins and license status are in `.agents/skills/VENDORED.md`; the owner waived the license restrictions on items 2 and 4 in [issue #2](https://github.com/remexstudio/remex-meter/issues/2). Never hand-edit vendored skill files.
 
 ## Names
 
@@ -28,7 +29,7 @@ Use exactly these names. Do not invent alternatives.
 | DMG | `Remex-Meter-${version}-arm64.dmg` |
 | About | Remex Meter · Remex Studio |
 
-Never use "Token Monitor", "Remex Monitor", "remex-monitor", "token-monitor", "AI Usage" or "Quota App" as a product, repository, bundle or UI name. "Token Monitor" / `Javis603/token-monitor` may appear only as upstream attribution. The inherited code still carries upstream names (package metadata, `APP_NAME`, `TOKEN_MONITOR_*` env vars, `TokenMonitorWidget`); they are renamed deliberately in Phase 1 ([issue #3](https://github.com/remexstudio/remex-meter/issues/3)), not piecemeal.
+Never use "Token Monitor", "Remex Monitor", "remex-monitor", "token-monitor", "AI Usage" or "Quota App" as a product, repository, bundle or UI name. "Token Monitor" / `Javis603/token-monitor` may appear only as upstream attribution. Phase 1 renamed the package, bundle, `APP_NAME`, updater and widget identifiers. `TOKEN_MONITOR_*` env vars, settings keys, Hub headers and `TokenMonitorWidget` target names remain as internal compatibility names; `docs/UPSTREAM.md` (Phase 1 decisions) lists them. Do not rename them piecemeal.
 
 ## Language
 
@@ -49,7 +50,7 @@ Details and rationale are in `docs/PRODUCT.md`, `docs/POOLS.md`, `docs/UPSTREAM.
 - **Catalog-driven UI.** Tools, order, labels and marks come from `CLIENT_CATALOG`, `LIMIT_PROVIDER_CATALOG` and `VENDOR_PRESENTATION`; no provider-specific markup.
 - **Real vibrancy.** Native material first; CSS blur only as a fallback.
 - **macOS Apple Silicon only.** Do not enable Windows or Linux builds or add new branches for them.
-- **Six tools.** Cursor, Grok, Claude Code, Codex, OpenCode, DeepSeek — enabled in Phase 1. Until then the inherited tool list is unchanged.
+- **Six tools.** Cursor, Grok, Claude Code, Codex, OpenCode, DeepSeek are the only tools on by default, in that order, driven by the catalogs. Other inherited adapters stay wired but off.
 - **No new data architecture.** Adapt tokscale, the limits runtime and the provider registry; do not add a parallel collector, store or IPC family.
 
 ## Remex Meter documents

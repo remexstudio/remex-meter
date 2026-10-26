@@ -37,8 +37,8 @@ test('Amp keeps the canonical amp id without matching unrelated client names', (
   assert.equal(normalizeClientName('pramp'), 'pramp');
 });
 
-test('Amp is a default-tracked Tokscale client, not a local adapter', () => {
-  assert.ok(DEFAULT_CLIENTS.split(',').includes('amp'));
+test('Amp is an opt-in Tokscale client, not a local adapter', () => {
+  assert.ok(!DEFAULT_CLIENTS.split(',').includes('amp'));
   assert.ok(!PARSE_LOCAL_CLIENTS.includes('amp'));
 });
 

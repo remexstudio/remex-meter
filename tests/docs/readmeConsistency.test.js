@@ -4,7 +4,6 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
-const { LIMIT_PROVIDER_IDS } = require('../../src/shared/limits/providers');
 
 const rootDir = path.join(__dirname, '..', '..');
 const read = (file) => fs.readFileSync(path.join(rootDir, file), 'utf8');
@@ -215,20 +214,6 @@ test('localized READMEs disclose the LM Studio server-log tracking boundary', ()
   }
 });
 
-// The provider list is ordered to match the README table, so a reader comparing
-// the two sees the same sequence. Nothing enforced that before: the order test
-// pins LIMIT_PROVIDERS against its own hard-coded copy and the table test pins
-// the README against its own, so both could pass while the two disagreed — which
-// is exactly how Command Code landed in the wrong slot.
-//
-// The table's icon id is not always the provider id (a tool row is named after
-// its artwork), and GLM/GLM Team share one row, so the two are bridged here.
-const README_ICON_TO_LIMIT_PROVIDERS = {
-  droid: ['factory'],
-  xai: ['grok'],
-  zcode: ['zai', 'zaiteam']
-};
-
 test('localized READMEs disclose the Unsloth database and inference scope', () => {
   for (const file of localizedReadmes) {
     const text = read(file);
@@ -248,20 +233,6 @@ test('localized READMEs disclose the Devin Desktop agent boundary', () => {
     assert.ok(text.includes('`devin-cloud`'), file);
     assert.ok(text.includes('(docs/providers/devin.md)'), file);
   }
-});
-
-test('limit provider order follows the supported-tools table', () => {
-  const text = read('docs/upstream/README.upstream.md');
-  const fromReadme = text
-    .split('\n')
-    .filter((line) => line.startsWith('| <img'))
-    .filter((row) => row.split('|').map((cell) => cell.trim())[5] === '✅')
-    .flatMap((row) => {
-      const icon = row.match(/tools-icon\/([^".]+)\.[a-z]+"/i)[1];
-      return README_ICON_TO_LIMIT_PROVIDERS[icon] || [icon];
-    });
-
-  assert.deepEqual(fromReadme, [...LIMIT_PROVIDER_IDS]);
 });
 
 test('README tool and provider counts match the supported-tools table', () => {

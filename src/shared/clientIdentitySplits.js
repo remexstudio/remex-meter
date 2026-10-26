@@ -1,10 +1,10 @@
 'use strict';
 
-// Client identity splits: a Tokscale client id that Token Monitor used to
+// Client identity splits: a Tokscale client id that Remex Meter used to
 // record under a different client id, and that is now tracked on its own.
 //
 // Oh My Pi splits from Pi. Tokscale has always parsed .omp/agent/sessions as
-// its own omp client (4.13.0 onwards), but Token Monitor folded omp into pi
+// its own omp client (4.13.0 onwards), but Remex Meter folded omp into pi
 // from 2026-08-25 so both products shared one row. Splitting them back apart
 // changes the *identity* of already-stored usage, which is not a rename: the
 // durable archives hold pi rows whose numbers include Oh My Pi, and a fresh

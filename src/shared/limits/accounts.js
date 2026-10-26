@@ -92,15 +92,16 @@ function registerProvider(account, loadLimits) {
 }
 
 const LIMIT_PROVIDER_ACCOUNTS = Object.freeze([
+  registerProvider(require('../providers/cursor/account'), () => require('../providers/cursor/limits')),
+  registerProvider(require('../providers/grok/account'), () => require('../providers/grok/limits')),
   registerProvider(require('../providers/claude/account'), () => require('../providers/claude/limits')),
   registerProvider(require('../providers/codex/account'), () => require('../providers/codex/limits')),
   registerProvider(require('../providers/opencode/account'), () => require('../providers/opencode/limits')),
-  registerProvider(require('../providers/cursor/account'), () => require('../providers/cursor/limits')),
+  registerProvider(require('../providers/deepseek/account'), () => require('../providers/deepseek/limits')),
   registerProvider(require('../providers/antigravity/account'), () => require('../providers/antigravity/limits')),
   registerProvider(require('../providers/cline/account'), () => require('../providers/cline/limits')),
   registerProvider(require('../providers/factory/account'), () => require('../providers/factory/limits')),
   registerProvider(require('../providers/kimi/account'), () => require('../providers/kimi/limits')),
-  registerProvider(require('../providers/grok/account'), () => require('../providers/grok/limits')),
   registerProvider(require('../providers/copilot/account'), () => require('../providers/copilot/limits')),
   registerProvider(require('../providers/zed/account'), () => require('../providers/zed/limits')),
   registerProvider(require('../providers/commandcode/account'), () => require('../providers/commandcode/limits')),
@@ -110,7 +111,6 @@ const LIMIT_PROVIDER_ACCOUNTS = Object.freeze([
   registerProvider(require('../providers/kiro/account'), () => require('../providers/kiro/limits')),
   registerProvider(require('../providers/workbuddy/account'), () => require('../providers/workbuddy/limits')),
   registerProvider(require('../providers/qoder/account'), () => require('../providers/qoder/limits')),
-  registerProvider(require('../providers/deepseek/account'), () => require('../providers/deepseek/limits')),
   registerProvider(require('../providers/devin/account'), () => require('../providers/devin/limits')),
   registerProvider(require('../providers/typesafe/account'), () => require('../providers/typesafe/limits')),
   registerProvider(require('../providers/openrouter/account'), () => require('../providers/openrouter/limits')),

@@ -43,7 +43,7 @@ function assertWidgetArtifacts(root, options = {}) {
     ['Widget extension entitlements', paths.extensionEntitlements],
     ['Widget reloader entitlements', paths.reloaderEntitlements]
   ];
-  const appGroup = String(env.TOKEN_MONITOR_APP_GROUP || 'group.com.example.tokenmonitor').trim();
+  const appGroup = String(env.TOKEN_MONITOR_APP_GROUP || 'group.studio.remex.meter').trim();
   const distributionBuild = String(env.TOKEN_MONITOR_WIDGET_DISTRIBUTION || '').trim() === '1';
   const developmentTeam = String(env.DEVELOPMENT_TEAM || '').trim();
   if (distributionBuild) validateAppGroupForDistribution(appGroup, developmentTeam);
@@ -102,7 +102,7 @@ function widgetMacBuildConfig(baseMac = {}, options = {}) {
 
   assertWidgetArtifacts(root, { env });
   const localDevelopmentSigning = String(env.TOKEN_MONITOR_LOCAL_DEVELOPMENT_SIGNING || '').trim() === '1';
-  const appGroup = String(env.TOKEN_MONITOR_APP_GROUP || 'group.com.example.tokenmonitor').trim();
+  const appGroup = String(env.TOKEN_MONITOR_APP_GROUP || 'group.studio.remex.meter').trim();
   const extraFiles = Array.isArray(base.extraFiles)
     ? base.extraFiles
     : (base.extraFiles === undefined ? [] : [base.extraFiles]);

@@ -274,8 +274,8 @@ test('fetchKiroLimits surfaces a logged-out scan as notConfigured', async () => 
   assert.equal(provider.windows.length, 0);
 });
 
-test('parseLimitProviders includes kiro by default and accepts it explicitly', () => {
-  assert.ok(parseLimitProviders().includes('kiro'), 'kiro is collected by default');
+test('parseLimitProviders leaves kiro off by default and accepts it explicitly', () => {
+  assert.ok(!parseLimitProviders().includes('kiro'), 'kiro is not one of the six default tools');
   assert.deepEqual(parseLimitProviders('kiro'), ['kiro']);
 });
 

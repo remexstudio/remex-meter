@@ -240,7 +240,7 @@ test('orderedVendorIds covers every brand key once, tracked first, default last'
   assert.equal(ordered.length, brandKeys.length);
   assert.deepEqual([...ordered].sort(), [...brandKeys].sort());
   assert.equal(new Set(ordered).size, ordered.length, 'no duplicates');
-  assert.equal(ordered[0], 'claude', 'tracked client comes first');
+  assert.equal(ordered[0], 'cursor', 'tracked client comes first');
   assert.equal(ordered[ordered.length - 1], 'default', 'default fallback last');
 });
 

@@ -237,17 +237,10 @@ test('prepareTrayIconForPlatform trims before resizing on Windows only', () => {
   assert.deepEqual(linuxSquare.resizes, [{ width: 20, height: 20 }]);
 });
 
-test('the full-bleed Windows icon ships in the Windows package and nowhere else', () => {
-  // The tray reads this at runtime, but electron-builder only treats `win.icon`
-  // as a build input — left out of `files` it would be missing from the asar and
-  // the Windows tray would come up blank, which no CI job here would catch.
-  // Platform `files` are appended to the shared list rather than replacing it,
-  // so scoping it to `win` keeps a 1MB Windows-only asset out of the macOS and
-  // Linux artifacts without narrowing what they package.
+test('the Windows-only full-bleed icon stays out of the macOS package', () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8'));
-  assert.ok(fs.existsSync(path.join(__dirname, '../../assets/icon-win.png')), 'assets/icon-win.png exists');
-  assert.ok(pkg.build.win.files.includes('assets/icon-win.png'), 'assets/icon-win.png is in build.win.files');
-  assert.ok(!pkg.build.files.includes('assets/icon-win.png'), 'and not in the shared list');
+  assert.ok(!pkg.build.files.includes('assets/icon-win.png'), 'not in the shared list');
+  assert.equal(pkg.build.win, undefined);
 });
 
 test('Windows leaves the window icon to the executable that already carries an ICO', () => {

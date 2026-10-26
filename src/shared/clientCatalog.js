@@ -27,18 +27,14 @@
   // and the README table (tests/shared/clientTracking.test.js enforces that).
   //
   // `defaultTracked: false` keeps a client wired and selectable but off on a
-  // fresh install. qodercn is opt-in per the upstream tool-support boundary — a
-  // local adapter that may break when Qoder changes its DB schema.
+  // fresh install. Remex Meter tracks exactly its six tools by default, in the
+  // order of docs/PRODUCT.md; every other inherited client stays wired and can
+  // be ticked in Settings. Saved selections are never rewritten.
   //
-  // mimo (MiMo) ships default-tracked even though mimocode.db auto-imports
-  // Claude Code sessions (its claude-import service): tokscale parses the store
-  // but does not dedup those imports, and the imported rows aren't cleanly
-  // separable (MiMo is multi-model), so a MiMo user's Claude work is counted
-  // under both `claude` and `mimo`. That overlap is accepted rather than fixed
-  // here — discovering the tool at all was judged to matter more than the
-  // inflation, and anyone affected can untick it in Settings → tools. Only a
-  // fresh install is affected; saved selections are untouched. Revisit if
-  // tokscale ever marks claude-import sessions.
+  // If mimo (MiMo) is ticked, note that mimocode.db auto-imports Claude Code
+  // sessions (its claude-import service): tokscale parses the store but does
+  // not dedup those imports, so that work is counted under both `claude` and
+  // `mimo`.
   //
   // `locallyParsed: true` means the client is excluded from the tokscale client
   // filter and read by a local adapter instead (collector.js). This is an axis
@@ -46,42 +42,44 @@
   // antigravity) still go through tokscale and are tracked separately in
   // collector.js.
   const CLIENT_CATALOG = Object.freeze([
+    { id: 'cursor', label: 'Cursor' },
+    { id: 'grok', label: 'Grok' },
     { id: 'claude', label: 'Claude Code' },
     { id: 'codex', label: 'Codex' },
     { id: 'opencode', label: 'OpenCode' },
-    { id: 'hermes', label: 'Hermes Agent' },
-    { id: 'openclaw', label: 'OpenClaw' },
-    { id: 'cursor', label: 'Cursor' },
-    { id: 'antigravity', label: 'Antigravity' },
-    { id: 'cline', label: 'Cline' },
-    { id: 'amp', label: 'Amp' },
-    { id: 'droid', label: 'Factory Droid' },
-    { id: 'kimi', label: 'Kimi' },
-    { id: 'qwen', label: 'Qwen' },
-    { id: 'grok', label: 'Grok Build' },
-    { id: 'copilot', label: 'GitHub Copilot' },
-    { id: 'pi', label: 'Pi' },
-    // Oh My Pi was folded into the `pi` row until the two products were split
-    // apart (see clientIdentitySplits.js). Tokscale has always parsed its
-    // .omp/agent/sessions root as its own `omp` client, so the row is a real
-    // client, not a sub-source of Pi.
-    { id: 'omp', label: 'Oh My Pi' },
-    { id: 'zed', label: 'Zed' },
-    { id: 'kilo', label: 'Kilo' },
-    { id: 'commandcode', label: 'Command Code' },
-    { id: 'mimo', label: 'Xiaomi MiMo' },
-    { id: 'zcode', label: 'ZCode' },
-    { id: 'kiro', label: 'Kiro' },
-    { id: 'codebuddy', label: 'CodeBuddy' },
-    { id: 'workbuddy', label: 'WorkBuddy' },
-    { id: 'proma', label: 'Proma', locallyParsed: true },
-    { id: 'qodercn', label: 'Qoder CN', defaultTracked: false, locallyParsed: true },
-    { id: 'reasonix', label: 'Reasonix' },
-    { id: 'dsh', label: 'DeepSeek Harness' },
-    { id: 'cherrystudio', label: 'Cherry Studio' },
-    { id: 'lmstudio', label: 'LM Studio' },
-    { id: 'unsloth', label: 'Unsloth' },
-    { id: 'devin', label: 'Devin' }
+    { id: 'dsh', label: 'DeepSeek' },
+    ...[
+      { id: 'hermes', label: 'Hermes Agent' },
+      { id: 'openclaw', label: 'OpenClaw' },
+      { id: 'antigravity', label: 'Antigravity' },
+      { id: 'cline', label: 'Cline' },
+      { id: 'amp', label: 'Amp' },
+      { id: 'droid', label: 'Factory Droid' },
+      { id: 'kimi', label: 'Kimi' },
+      { id: 'qwen', label: 'Qwen' },
+      { id: 'copilot', label: 'GitHub Copilot' },
+      { id: 'pi', label: 'Pi' },
+      // Oh My Pi was folded into the `pi` row until the two products were split
+      // apart (see clientIdentitySplits.js). Tokscale has always parsed its
+      // .omp/agent/sessions root as its own `omp` client, so the row is a real
+      // client, not a sub-source of Pi.
+      { id: 'omp', label: 'Oh My Pi' },
+      { id: 'zed', label: 'Zed' },
+      { id: 'kilo', label: 'Kilo' },
+      { id: 'commandcode', label: 'Command Code' },
+      { id: 'mimo', label: 'Xiaomi MiMo' },
+      { id: 'zcode', label: 'ZCode' },
+      { id: 'kiro', label: 'Kiro' },
+      { id: 'codebuddy', label: 'CodeBuddy' },
+      { id: 'workbuddy', label: 'WorkBuddy' },
+      { id: 'proma', label: 'Proma', locallyParsed: true },
+      { id: 'qodercn', label: 'Qoder CN', locallyParsed: true },
+      { id: 'reasonix', label: 'Reasonix' },
+      { id: 'cherrystudio', label: 'Cherry Studio' },
+      { id: 'lmstudio', label: 'LM Studio' },
+      { id: 'unsloth', label: 'Unsloth' },
+      { id: 'devin', label: 'Devin' }
+    ].map((client) => ({ ...client, defaultTracked: false }))
   ].map((client) => Object.freeze({
     defaultTracked: true,
     locallyParsed: false,

@@ -10,9 +10,9 @@ const {
   verifyMacWidgetApp
 } = require('../../scripts/verify-macos-widget-app');
 
-const APP_ID = 'com.javis.tokenmonitor';
-const WIDGET_BUNDLE_ID = 'com.javis.tokenmonitor.widget';
-const WIDGET_KIND = 'com.tokenmonitor.dashboard';
+const APP_ID = 'studio.remex.meter';
+const WIDGET_BUNDLE_ID = 'studio.remex.meter.widget';
+const WIDGET_KIND = 'studio.remex.meter.dashboard';
 
 function plistForApp() {
   return {
@@ -176,14 +176,14 @@ test('parses codesign metadata emitted on stderr', () => {
   const metadata = readCodesignMetadata('/tmp/Token Monitor.app', () => ({
     stdout: '',
     stderr: [
-      'Identifier=com.javis.tokenmonitor',
+      'Identifier=studio.remex.meter',
       'TeamIdentifier=ABCDE12345',
       'Authority=Developer ID Application: Example (ABCDE12345)',
       'Authority=Developer ID Certification Authority'
     ].join('\n')
   }));
   assert.deepEqual(metadata, {
-    identifier: 'com.javis.tokenmonitor',
+    identifier: 'studio.remex.meter',
     teamIdentifier: 'ABCDE12345',
     authorities: [
       'Developer ID Application: Example (ABCDE12345)',
@@ -193,7 +193,7 @@ test('parses codesign metadata emitted on stderr', () => {
 });
 
 test('local ad-hoc verification does not require a TeamIdentifier', (t) => {
-  const appGroup = 'group.com.example.tokenmonitor';
+  const appGroup = 'group.studio.remex.meter';
   const bundle = makeBundle({ appGroup });
   t.after(() => fs.rmSync(bundle.root, { recursive: true, force: true }));
   assert.doesNotThrow(() => verifyFixture(bundle, { appGroup, includeTeamIdentifier: false }));
@@ -210,7 +210,7 @@ test('local verification rejects ad-hoc signing for a Team App Group', (t) => {
 });
 
 test('local verification permits a Widget-only build revision for descriptor reindexing', (t) => {
-  const appGroup = 'group.com.example.tokenmonitor';
+  const appGroup = 'group.studio.remex.meter';
   const bundle = makeBundle({ appGroup });
   t.after(() => fs.rmSync(bundle.root, { recursive: true, force: true }));
   bundle.extensionInfo.CFBundleVersion = '29';
@@ -222,7 +222,7 @@ test('local verification permits a Widget-only build revision for descriptor rei
 });
 
 test('local ad-hoc verification requires every Electron helper to load the Electron Framework', (t) => {
-  const appGroup = 'group.com.example.tokenmonitor';
+  const appGroup = 'group.studio.remex.meter';
   const bundle = makeBundle({ appGroup });
   t.after(() => fs.rmSync(bundle.root, { recursive: true, force: true }));
 
@@ -233,7 +233,7 @@ test('local ad-hoc verification requires every Electron helper to load the Elect
 });
 
 test('cross-checks the expected App Group across config, Info.plist, and signed entitlements', (t) => {
-  const appGroup = 'group.com.example.tokenmonitor';
+  const appGroup = 'group.studio.remex.meter';
   const bundle = makeBundle({ appGroup });
   t.after(() => fs.rmSync(bundle.root, { recursive: true, force: true }));
   assert.doesNotThrow(() => verifyFixture(bundle, { appGroup }));
@@ -294,7 +294,7 @@ test('formal verification matches signed Teams and requires Developer ID authori
 });
 
 test('formal verification rejects a signed Team that differs from DEVELOPMENT_TEAM', (t) => {
-  const appGroup = 'group.com.example.tokenmonitor';
+  const appGroup = 'group.studio.remex.meter';
   const bundle = makeBundle({ appGroup });
   t.after(() => fs.rmSync(bundle.root, { recursive: true, force: true }));
   assert.throws(() => verifyFixture(bundle, {
@@ -308,7 +308,7 @@ test('formal verification rejects a signed Team that differs from DEVELOPMENT_TE
 });
 
 test('formal group.* verification rejects signatures without their provisioned Apple identities', (t) => {
-  const appGroup = 'group.com.example.tokenmonitor';
+  const appGroup = 'group.studio.remex.meter';
   const bundle = makeBundle({ appGroup });
   t.after(() => fs.rmSync(bundle.root, { recursive: true, force: true }));
   assert.throws(() => verifyFixture(bundle, {

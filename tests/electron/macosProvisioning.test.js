@@ -16,12 +16,12 @@ const { validateAppGroup } = require('../../src/shared/macWidgetConfig');
 const fixtureRoot = path.join(__dirname, '..', 'fixtures', 'macos');
 const appPath = path.join(fixtureRoot, 'good-app.plist');
 const widgetPath = path.join(fixtureRoot, 'good-widget.plist');
-const APP_GROUP = 'group.com.example.tokenmonitor';
+const APP_GROUP = 'group.studio.remex.meter';
 
 function fixtureProfiles() {
   return {
     app: {
-      applicationIdentifier: 'ABCDE12345.com.example.tokenmonitor',
+      applicationIdentifier: 'ABCDE12345.studio.remex.meter',
       teamIdentifier: 'ABCDE12345',
       applicationGroups: [APP_GROUP],
       expirationDate: new Date('2030-01-01T00:00:00Z'),
@@ -30,7 +30,7 @@ function fixtureProfiles() {
       hasProvisionedDevices: false
     },
     widget: {
-      applicationIdentifier: 'ABCDE12345.com.example.tokenmonitor.widget',
+      applicationIdentifier: 'ABCDE12345.studio.remex.meter.widget',
       teamIdentifier: 'ABCDE12345',
       applicationGroups: [APP_GROUP],
       expirationDate: new Date('2030-01-01T00:00:00Z'),
@@ -44,7 +44,7 @@ function fixtureProfiles() {
 test('reads realistic fixture provisioning profiles with opaque Apple metadata', () => {
   const { readProvisioningProfile } = require('../../scripts/macos-provisioning');
   assert.equal(readProvisioningProfile(appPath, { plainPlist: true }).teamIdentifier, 'ABCDE12345');
-  assert.equal(readProvisioningProfile(widgetPath, { plainPlist: true }).applicationIdentifier, 'ABCDE12345.com.example.tokenmonitor.widget');
+  assert.equal(readProvisioningProfile(widgetPath, { plainPlist: true }).applicationIdentifier, 'ABCDE12345.studio.remex.meter.widget');
 });
 
 test('parses NSDate and NSData plist values that JSON converters reject', () => {
@@ -59,7 +59,7 @@ test('parses NSDate and NSData plist values that JSON converters reject', () => 
     '<key>DeveloperCertificates</key><array><data>AQIDBA==</data></array>',
     '<key>Entitlements</key><dict>',
     '<key>com.apple.security.application-groups</key>',
-    '<array><string>group.com.example.tokenmonitor</string></array>',
+    '<array><string>group.studio.remex.meter</string></array>',
     '<key>get-task-allow</key><false/>',
     '</dict>',
     '</dict>',
@@ -70,7 +70,7 @@ test('parses NSDate and NSData plist values that JSON converters reject', () => 
   assert.equal(document.CreationDate, '2026-01-01T00:00:00Z');
   assert.deepEqual(document.DeveloperCertificates, ['AQIDBA==']);
   assert.equal(document.Entitlements['get-task-allow'], false);
-  assert.deepEqual(parseProvisioningProfileDocument(document).applicationGroups, ['group.com.example.tokenmonitor']);
+  assert.deepEqual(parseProvisioningProfileDocument(document).applicationGroups, ['group.studio.remex.meter']);
 });
 
 test('decodes XML entities exactly once', () => {
@@ -104,8 +104,8 @@ test('validates fixture app and Widget profiles for the production App Group', (
   const result = validateProvisioningProfiles({
     appProfilePath: appPath,
     widgetProfilePath: widgetPath,
-    appBundleId: 'com.example.tokenmonitor',
-    widgetBundleId: 'com.example.tokenmonitor.widget',
+    appBundleId: 'studio.remex.meter',
+    widgetBundleId: 'studio.remex.meter.widget',
     appGroup: APP_GROUP,
     developmentTeam: 'ABCDE12345',
     profileReader: (filePath) => filePath === appPath ? fixtureProfiles().app : fixtureProfiles().widget
@@ -116,31 +116,31 @@ test('validates fixture app and Widget profiles for the production App Group', (
 
 test('classifies and validates the two supported App Group formats', () => {
   assert.equal(classifyAppGroup(APP_GROUP), 'group-profile');
-  assert.equal(classifyAppGroup('ABCDE12345.com.example.tokenmonitor'), 'team-prefixed');
-  assert.equal(classifyAppGroup('com.javis.tokenmonitor.shared'), 'invalid');
-  assert.equal(classifyAppGroup('SHORT.com.example.tokenmonitor'), 'invalid');
-  assert.equal(classifyAppGroup('ABCDEFGHIJK.com.example.tokenmonitor'), 'invalid');
+  assert.equal(classifyAppGroup('ABCDE12345.studio.remex.meter'), 'team-prefixed');
+  assert.equal(classifyAppGroup('studio.remex.meter.shared'), 'invalid');
+  assert.equal(classifyAppGroup('SHORT.studio.remex.meter'), 'invalid');
+  assert.equal(classifyAppGroup('ABCDEFGHIJK.studio.remex.meter'), 'invalid');
   assert.equal(classifyAppGroup('../../credentials'), 'invalid');
-  assert.doesNotThrow(() => validateAppGroup('ABCDE12345.com.example.tokenmonitor'));
+  assert.doesNotThrow(() => validateAppGroup('ABCDE12345.studio.remex.meter'));
   assert.throws(() => validateAppGroup(
-    'ABCDE12345.com.example.tokenmonitor', { developmentTeam: 'ZZZZZ99999' }
+    'ABCDE12345.studio.remex.meter', { developmentTeam: 'ZZZZZ99999' }
   ), /does not match DEVELOPMENT_TEAM/);
   assert.throws(() => validateAppGroup(
-    'ABCDE12345.com.example.tokenmonitor', { requireMatchingTeamPrefix: true }
+    'ABCDE12345.studio.remex.meter', { requireMatchingTeamPrefix: true }
   ), /DEVELOPMENT_TEAM is required/);
 });
 
 test('requires profiles for group.* but not for a Team-prefixed App Group', () => {
   assert.equal(profileIsRequired({ distributionBuild: true, localDevelopmentSigning: false, appGroup: APP_GROUP }), true);
-  assert.equal(profileIsRequired({ distributionBuild: true, localDevelopmentSigning: false, appGroup: 'ABCDE12345.com.example.tokenmonitor' }), false);
-  assert.equal(isTeamPrefixedAppGroup('ABCDE12345.com.example.tokenmonitor'), true);
-  assert.equal(isTeamPrefixedAppGroup('ABCD.com.example.tokenmonitor'), false);
+  assert.equal(profileIsRequired({ distributionBuild: true, localDevelopmentSigning: false, appGroup: 'ABCDE12345.studio.remex.meter' }), false);
+  assert.equal(isTeamPrefixedAppGroup('ABCDE12345.studio.remex.meter'), true);
+  assert.equal(isTeamPrefixedAppGroup('ABCD.studio.remex.meter'), false);
 });
 
 test('rejects a missing group authorization', () => {
   const profile = fixtureProfiles().app;
   assert.throws(() => validateProvisioningProfile({ ...profile, applicationGroups: [] }, {
-    role: 'app', bundleId: 'com.example.tokenmonitor', appGroup: APP_GROUP, developmentTeam: 'ABCDE12345'
+    role: 'app', bundleId: 'studio.remex.meter', appGroup: APP_GROUP, developmentTeam: 'ABCDE12345'
   }), /does not authorize App Group/);
 });
 
@@ -152,14 +152,14 @@ test('rejects bundle and Team mismatches', () => {
   assert.throws(() => validateProvisioningProfiles({
     appProfilePath: appPath,
     widgetProfilePath: widgetPath,
-    appBundleId: 'com.example.tokenmonitor',
-    widgetBundleId: 'com.example.tokenmonitor.widget',
+    appBundleId: 'studio.remex.meter',
+    widgetBundleId: 'studio.remex.meter.widget',
     appGroup: APP_GROUP,
     developmentTeam: 'ABCDE12345',
     profileReader: (filePath) => filePath === appPath ? app : {
       ...widget,
       teamIdentifier: 'ZZZZZ99999',
-      applicationIdentifier: 'ZZZZZ99999.com.example.tokenmonitor.widget'
+      applicationIdentifier: 'ZZZZZ99999.studio.remex.meter.widget'
     }
   }), /does not match DEVELOPMENT_TEAM/);
 });
@@ -167,10 +167,10 @@ test('rejects bundle and Team mismatches', () => {
 test('rejects expired and development profiles', () => {
   const profile = fixtureProfiles().app;
   assert.throws(() => validateProvisioningProfile({ ...profile, expirationDate: new Date('2000-01-01T00:00:00Z') }, {
-    role: 'app', bundleId: 'com.example.tokenmonitor', appGroup: APP_GROUP, developmentTeam: 'ABCDE12345'
+    role: 'app', bundleId: 'studio.remex.meter', appGroup: APP_GROUP, developmentTeam: 'ABCDE12345'
   }), /expired/);
   assert.throws(() => validateProvisioningProfile({ ...profile, getTaskAllow: true }, {
-    role: 'app', bundleId: 'com.example.tokenmonitor', appGroup: APP_GROUP, developmentTeam: 'ABCDE12345'
+    role: 'app', bundleId: 'studio.remex.meter', appGroup: APP_GROUP, developmentTeam: 'ABCDE12345'
   }), /development profile/);
 });
 
@@ -181,18 +181,18 @@ test('rejects non-Developer ID provisioning profile channels', () => {
   assert.throws(() => validateProvisioningProfile({
     ...profile, provisionsAllDevices: false
   }, {
-    role: 'app', bundleId: 'com.example.tokenmonitor', appGroup: APP_GROUP, developmentTeam: 'ABCDE12345'
+    role: 'app', bundleId: 'studio.remex.meter', appGroup: APP_GROUP, developmentTeam: 'ABCDE12345'
   }), /Developer ID distribution profile.*ProvisionsAllDevices/);
   assert.throws(() => validateProvisioningProfile({
     ...widgetProfile, hasProvisionedDevices: true
   }, {
-    role: 'extension', bundleId: 'com.example.tokenmonitor.widget', appGroup: APP_GROUP, developmentTeam: 'ABCDE12345'
+    role: 'extension', bundleId: 'studio.remex.meter.widget', appGroup: APP_GROUP, developmentTeam: 'ABCDE12345'
   }), /Developer ID distribution profile.*ProvisionedDevices/);
   assert.throws(() => validateProvisioningProfiles({
     appProfilePath: appPath,
     widgetProfilePath: widgetPath,
-    appBundleId: 'com.example.tokenmonitor',
-    widgetBundleId: 'com.example.tokenmonitor.widget',
+    appBundleId: 'studio.remex.meter',
+    widgetBundleId: 'studio.remex.meter.widget',
     appGroup: APP_GROUP,
     developmentTeam: 'ABCDE12345',
     distributionChannel: 'mac-app-store',
@@ -203,13 +203,13 @@ test('rejects non-Developer ID provisioning profile channels', () => {
 test('requires a matching explicit Team ID for provisioning profiles when supplied', () => {
   const profile = fixtureProfiles().app;
   assert.throws(() => validateProvisioningProfile(profile, {
-    role: 'app', bundleId: 'com.example.tokenmonitor', appGroup: APP_GROUP, developmentTeam: 'ZZZZZ99999'
+    role: 'app', bundleId: 'studio.remex.meter', appGroup: APP_GROUP, developmentTeam: 'ZZZZZ99999'
   }), /does not match DEVELOPMENT_TEAM/);
 });
 
 test('requires an explicit Team ID for production provisioning validation', () => {
   assert.throws(() => validateProvisioningProfile(fixtureProfiles().app, {
-    role: 'app', bundleId: 'com.example.tokenmonitor', appGroup: APP_GROUP
+    role: 'app', bundleId: 'studio.remex.meter', appGroup: APP_GROUP
   }), /DEVELOPMENT_TEAM is required/);
 });
 
@@ -218,8 +218,8 @@ test('rejects app and extension profiles that authorize different groups', () =>
   assert.throws(() => validateProvisioningProfiles({
     appProfilePath: appPath,
     widgetProfilePath: widgetPath,
-    appBundleId: 'com.example.tokenmonitor',
-    widgetBundleId: 'com.example.tokenmonitor.widget',
+    appBundleId: 'studio.remex.meter',
+    widgetBundleId: 'studio.remex.meter.widget',
     appGroup: APP_GROUP,
     developmentTeam: 'ABCDE12345',
     profileReader: (filePath) => filePath === appPath ? app : { ...widget, applicationGroups: ['group.other'] }

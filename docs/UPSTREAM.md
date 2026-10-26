@@ -14,18 +14,29 @@ Remex Meter's data plane is adapted from [Javis603/token-monitor](https://github
 
 Phase 0 changes to inherited files:
 
-- The upstream English README moved verbatim to `docs/upstream/README.upstream.md`; the README-backed guard tests (`tests/docs/readmeConsistency.test.js`, `tests/shared/clientTracking.test.js`, `tests/electron/limitProviderPresentation.test.js`, `tests/electron/thirdPartySettings.test.js`, `tests/electron/openrouterSettings.test.js`) read it from there. The localized upstream READMEs (`README.zh-CN.md`, `README.zh-TW.md`, `README.ja.md`, `README.ko.md`) stay at the root untouched; their language links now point at the Remex Meter README.
+- The upstream English README moved verbatim to `docs/upstream/README.upstream.md`; the README-backed guard tests (`tests/docs/readmeConsistency.test.js`, `tests/shared/clientTracking.test.js` until Phase 1, `tests/electron/limitProviderPresentation.test.js`, `tests/electron/thirdPartySettings.test.js`, `tests/electron/openrouterSettings.test.js`) read it from there. The localized upstream READMEs (`README.zh-CN.md`, `README.zh-TW.md`, `README.ja.md`, `README.ko.md`) stay at the root untouched; their language links now point at the Remex Meter README.
 - `AGENTS.md` gained the Remex Meter rules on top; the upstream guide below them is unchanged.
 - `.gitignore` tracks `.agents/skills/`; `eslint.config.js` ignores `.agents/**`.
 
 Nothing under `src/`, `native/`, `worker/` or `scripts/` changed.
 
-### Deferred to Phase 1
+## Phase 1 decisions
 
-Package and bundle identity is **not** renamed yet ([issue #3](https://github.com/remexstudio/remex-meter/issues/3)). `productName`, `appId` (`com.javis.tokenmonitor`), `artifactName`, `APP_NAME` in `src/electron/main.js` (which sets `userData`), the widget identifiers, and the macOS release scripts are pinned by release-artifact, signing, widget-verifier and updater tests, so they move together in one reviewed change. Two inherited behaviours matter until then:
+Phase 1 ([issue #3](https://github.com/remexstudio/remex-meter/issues/3)) renamed the identity and slimmed the platform. What changed in inherited files, and what deliberately did not:
 
-- `src/shared/appUpdater.js` checks releases of `Javis603/token-monitor`. A build from this tree would offer upstream releases as updates.
-- The renderer picks its locale from the system languages, so a Chinese-language system shows the inherited Chinese UI. Remex Meter's default is English.
+| Surface | Decision |
+|---|---|
+| `package.json` `name` / `productName` / `build.productName` / `appId` | `remex-meter` / `Remex Meter` / `studio.remex.meter`. `repository`, `homepage`, `bugs` and `build.publish` point at `remexstudio/remex-meter`. |
+| `APP_NAME` and `userData` | `APP_NAME` comes from `src/electron/appIdentity.js` (`Remex Meter`). `app.setName()` therefore moves `userData` and the shared data dir (`sharedDataDir()`) to `~/Library/Application Support/Remex Meter`. **No migration**: Remex Meter is a new product and starts with fresh settings, credentials and history. An upstream `Token Monitor` directory on the same Mac is ignored, not read or deleted. |
+| Updater | `GITHUB_REPO` in `src/shared/appUpdater.js` is `remexstudio/remex-meter`; the `openExternal` allowlist admits only `github.com/remexstudio/remex-meter/…` (the `javis-ai.com` entry is gone). Until Remex Meter publishes a release the check finds nothing, so no upstream build can ever be offered. The release pipeline itself is [issue #5](https://github.com/remexstudio/remex-meter/issues/5). |
+| Outbound `User-Agent` / `Referer` | `remex-meter/<version> (+https://github.com/remexstudio/remex-meter)` (and `RemexMeter/…` where upstream used the CamelCase form). OpenRouter's `X-OpenRouter-Title` is `Remex Meter`. |
+| Widget identifiers | Defaults for the App Group, widget bundle id and widget kind are `group.studio.remex.meter`, `studio.remex.meter.widget` and `studio.remex.meter.dashboard`. The Xcode target, scheme and Swift types keep the `TokenMonitorWidget` names until the widget is restyled ([issue #5](https://github.com/remexstudio/remex-meter/issues/5)). |
+| `TOKEN_MONITOR_*` env vars, settings keys, CLI flags | **Kept as internal names.** They are read by the agent, Hub, Worker, packaging scripts, CI and tests; renaming them would be a breaking change across all of those for no user-visible benefit. They are not shown in the Remex Meter UI. |
+| Hub headers (`x-token-monitor-*`), export file names (`token-monitor-*.json/csv`), widget URL scheme, renderer globals (`window.tokenMonitor`, `TokenMonitor*` UMD names), tray/asset file names | Kept as internal compatibility names for the same reason. The export `meta.app.name` is `remex-meter`. |
+| Default locale | Fresh installs store `language: 'en'`. The inherited translations stay; `auto` (follow the system) is still selectable. |
+| Platform | electron-builder packages only an arm64 DMG and zip (`Remex-Meter-${version}-arm64.{dmg,zip}`). The Windows/Linux builder sections, `dist:win*` / `dist:linux` / `*:x64` scripts, SignPath and NSIS files, the tag release workflow, GitHub Pages deploy, star-history job and `FUNDING.yml` were removed. Windows/Linux branches inside app code are untouched. `site/` is inherited and no longer deployed. |
+| Tools | `CLIENT_CATALOG` and `LIMIT_PROVIDER_CATALOG` lead with the six tools; the rest are `defaultTracked: false` / `defaultEnabled: false` (see `docs/PROVIDERS.md`). The first-run limits seed enables the six instead of only detected providers. |
+| Menu bar | On macOS the status item opens the Meter popover (`src/electron/meterPopover.js`); the inherited widget window is the Settings/details window and macOS fresh installs start in tray mode (no window, no Dock icon). See `docs/UI.md`. |
 
 ## Runtime boundaries
 
@@ -33,11 +44,11 @@ Package and bundle identity is **not** renamed yet ([issue #3](https://github.co
 |---|---|---|
 | Electron app ("widget" upstream) | `src/electron/main.js` | The product. Owns the tray/menu bar, windows, settings, credentials and IPC. |
 | Headless agent | `src/agent/agent.js` | Inherited, not a product surface. Useful for dry runs (`npm run agent:once -- --dry-run`). |
-| Node Hub | `src/hub/server.js` | Inherited multi-device sync. Not in the v1 product; do not delete in Phase 0–1 (tests and `src/shared/` depend on it). |
+| Node Hub | `src/hub/server.js` | Inherited multi-device sync. Not in the v1 product; its fate is [issue #5](https://github.com/remexstudio/remex-meter/issues/5) (tests and `src/shared/` depend on it). |
 | Cloudflare Worker Hub | `worker/` | Same as the Node Hub. `worker/` cannot import above itself; its `src/shared/` copies are generated by `npm run sync:worker`. |
 | Native WidgetKit extension | `native/macos/` | Optional. Built only by `pack:mac:widget` / `dist:mac:widget*`. Reads the App Group snapshot; never collects data itself. |
 
-All runtimes share `src/shared/`. Settings keys, env vars (`TOKEN_MONITOR_*`), CLI flags, Hub endpoints and the device wire shape are compatibility surfaces upstream; Remex Meter inherits them as internal names until Phase 1 decides otherwise.
+All runtimes share `src/shared/`. Settings keys, env vars (`TOKEN_MONITOR_*`), CLI flags, Hub endpoints and the device wire shape are compatibility surfaces upstream; Remex Meter keeps them as internal names (see Phase 1 decisions).
 
 ## Usage plane: tokscale
 

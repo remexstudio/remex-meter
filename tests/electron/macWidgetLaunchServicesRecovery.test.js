@@ -14,7 +14,7 @@ const {
 const CONFIG = Object.freeze({
   schemaVersion: 1,
   appGroup: 'TEAM.tokenmonitor',
-  widgetKind: 'com.tokenmonitor.dashboard',
+  widgetKind: 'studio.remex.meter.dashboard',
   widgetUIVersion: 6,
   widgetSchemaVersion: 6,
   gitRevision: 'abc123',
@@ -393,7 +393,7 @@ test('changed build provenance, Widget kind, or host location gets a new registr
 
     fs.writeFileSync(
       path.join(setup.resourcesPath, 'token-monitor-widget.json'),
-      `${JSON.stringify({ ...CONFIG, packageVersion: '0.43.1', widgetKind: 'com.tokenmonitor.dashboard.preview' })}\n`
+      `${JSON.stringify({ ...CONFIG, packageVersion: '0.43.1', widgetKind: 'studio.remex.meter.dashboard.preview' })}\n`
     );
     const changedWidgetKind = createMacWidgetLaunchServicesRecovery({ execFile: successfulExec(calls) });
     assert.deepEqual(await run(changedWidgetKind, setup), { status: 'completed' });

@@ -251,7 +251,7 @@ module.exports = async function signMacAppWithWidget(options) {
   const identity = String(options.identity || '').trim();
   if (!identity) throw new Error('macOS signing identity is unavailable for Widget extension');
   const localDevelopmentSigning = process.env.TOKEN_MONITOR_LOCAL_DEVELOPMENT_SIGNING === '1';
-  const appGroup = String(process.env.TOKEN_MONITOR_APP_GROUP || 'group.com.example.tokenmonitor').trim();
+  const appGroup = String(process.env.TOKEN_MONITOR_APP_GROUP || 'group.studio.remex.meter').trim();
   const distributionBuild = process.env.TOKEN_MONITOR_WIDGET_DISTRIBUTION === '1';
   const developmentTeam = String(process.env.DEVELOPMENT_TEAM || '').trim();
   if (distributionBuild) validateAppGroupForDistribution(appGroup, developmentTeam);

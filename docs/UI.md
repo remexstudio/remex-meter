@@ -1,6 +1,6 @@
 # UI
 
-Remex Meter is a native macOS menu-bar utility. Before changing any surface below, load the skills required by `AGENTS.md` (`apple-menubar-monitor`, `macos-design`; `apple-design` for audits). The skill holds implementation detail, the SF Symbols map and the PR checklist; this page defines the surfaces.
+Remex Meter is a native macOS menu-bar utility. Before changing any surface below, load the skills required by `AGENTS.md` (`apple-menubar-monitor`, `macos-menubar-app-development`, `macos-design`, `macos-gui-app-design`; `apple-design` for audits). The skill holds implementation detail, the SF Symbols map and the PR checklist; this page defines the surfaces.
 
 ## Surfaces
 
@@ -20,10 +20,11 @@ Remex Meter is a native macOS menu-bar utility. Before changing any surface belo
   2. One module per enabled tool, in the configured order (default Cursor → Grok → Claude Code → Codex → OpenCode → DeepSeek).
   3. Footer: Settings… and Quit.
 - A tool module contains its mark and name, today's tokens and cost (usage), then one row per limits window (quota), then a state line if anything is missing.
-- Pool modules (`docs/POOLS.md`): Cursor Mode Pool, Cursor Other Modes, Grok Heavy Weekly, Grok Bolt Weekly — each its own meter row.
+- Pool modules (`docs/POOLS.md`): Cursor Mode Pool, Cursor Other Modes, Grok Heavy Weekly, Grok Bolt Weekly — each its own meter row. They need stable window ids and a Grok source, so they arrive in Phase 2 ([issue #4](https://github.com/remexstudio/remex-meter/issues/4)). Until then every window a provider returns is its own row under the provider's label; nothing is summed or relabelled as a pool.
 - Meter row: pool name, percentage used (tabular numerals), a thin horizontal meter, reset time ("Resets Mon 09:00" or relative). Money windows show an amount instead of a meter.
 - States: "Unavailable", "Sign in required", "Not configured", "Stale" (with the age). Each has a symbol and text; none shows a bar.
-- Hides on blur and on Escape.
+- Hides on blur and on Escape. Command-comma opens Settings, Command-R refreshes, Command-Q quits.
+- Implementation: `src/electron/meterPopover.js` (window, materials, keys, `meter:*` IPC), `src/electron/meterPopoverModel.js` (catalog-driven view model), `src/electron/renderer/meter/` (markup, styles, rendering). The popover has its own preload (`meterPreload.js`) that exposes only its state and a fixed command list.
 
 ### Settings
 

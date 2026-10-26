@@ -1,6 +1,6 @@
 'use strict';
 
-// Some Token Monitor rows combine multiple concrete Tokscale clients. Keep
+// Some Remex Meter rows combine multiple concrete Tokscale clients. Keep
 // both subprocess filtering and custom-root expansion on this one mapping so a
 // source cannot be counted by a normal scan but silently skipped by an extra
 // directory scan.

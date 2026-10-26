@@ -63,10 +63,10 @@ function iconKindFor(rowData, breakdown) {
 }
 
 const LIMIT_PROVIDER_ACCOUNT_GROUP_IDS = {
+  cursor: 'cursorAccountGroup',
   claude: 'claudeAccountGroup',
   codex: 'codexAccountGroup',
   opencode: 'opencodeCookieGroup',
-  cursor: 'cursorAccountGroup',
   antigravity: 'antigravityAccountGroup',
   kimi: 'kimiAccountGroup',
   copilot: 'copilotAccountGroup',
@@ -83,10 +83,10 @@ const LIMIT_PROVIDER_ACCOUNT_GROUP_IDS = {
   thirdparty: 'thirdpartyAccountGroup'
 };
 const LIMIT_PROVIDER_ACCOUNT_STATUS_IDS = {
+  cursor: 'cursorAccountStatus',
   claude: 'claudeAccountStatus',
   codex: 'codexAccountStatus',
   opencode: 'opencodeCookieStatus',
-  cursor: 'cursorAccountStatus',
   antigravity: 'antigravityAccountStatus',
   kimi: 'kimiAccountStatus',
   copilot: 'copilotApiTokenStatus',
@@ -276,9 +276,9 @@ const SERVICE_STATUS_PLACEHOLDERS = [
   { id: 'deepseek', label: 'DeepSeek', pageUrl: 'https://status.deepseek.com' }
 ];
 const SERVICE_PROVIDER_OPTIONS = SERVICE_STATUS_PLACEHOLDERS.map((entry) => ({ id: entry.id, label: entry.label }));
-const TOKEN_MONITOR_REPOSITORY_URL = 'https://github.com/Javis603/token-monitor';
+const TOKEN_MONITOR_REPOSITORY_URL = 'https://github.com/remexstudio/remex-meter';
 const TOKEN_MONITOR_ISSUES_URL = `${TOKEN_MONITOR_REPOSITORY_URL}/issues/new/choose`;
-const TOKEN_MONITOR_WEBSITE_URL = 'https://javis-ai.com/token-monitor/';
+const TOKEN_MONITOR_WEBSITE_URL = TOKEN_MONITOR_REPOSITORY_URL;
 const TOKEN_MONITOR_WSL_SQLITE_GUIDE_URL = `${TOKEN_MONITOR_REPOSITORY_URL}/blob/main/docs/wsl-sqlite-setup.md`;
 const serviceStatusProviderPreferencesApi = window.TokenMonitorServiceStatusProviderPreferences;
 const SETTINGS_SECTION_IDS = ['general', 'main', 'window', 'appearance', 'tools', 'limits', 'subscriptions', 'sync'];
@@ -562,7 +562,7 @@ function preferredLanguages() {
 }
 
 function currentLanguage() {
-  return i18n.normalizeLanguage(state.settings?.language || 'auto');
+  return i18n.normalizeLanguage(state.settings?.language || 'en');
 }
 
 function currentLocale() {
@@ -12713,7 +12713,7 @@ function trayComposerProviderIcon(provider) {
       });
     } catch (_) {}
   }
-  if (id === 'app') return '../../../assets/icons/tray-token-monitor.png';
+  if (id === 'app') return '../../../assets/icons/tray-meter.png';
   return window.TokenMonitorTrayProviderIcons.trayProviderIconSources([id])[id] || '';
 }
 
@@ -13089,7 +13089,7 @@ async function deliverTrayProviderIcons(showBadge = state.settings?.showTrayProv
   if (!window.tokenMonitor.setTrayIcons) return;
   const deliveryId = trayProviderIconDeliveryGuard.begin();
   const sources = window.TokenMonitorTrayProviderIcons.trayProviderIconSources(trayIconProviderIds);
-  sources.app = '../../../assets/icons/tray-token-monitor.png';
+  sources.app = '../../../assets/icons/tray-meter.png';
   const icons = {};
   for (const [id, path] of Object.entries(sources)) {
     try {
@@ -13850,7 +13850,7 @@ function apiKeyAccountStatusText(providerName, provider, configured, source, ena
   if (accountStatus === 'invalid') {
     // Cline's two lanes refuse in different places, and this row names the lane the
     // credential came from rather than always the key field: Cline owns recovery for
-    // the discovered sign-in, while Token Monitor owns the configured API key. Every
+    // the discovered sign-in, while Remex Meter owns the configured API key. Every
     // other provider here keeps the one statusInvalid string.
     const invalidKey = providerName === 'cline' && source === 'cline-signin'
       ? 'settings.cline.statusSigninInvalid'
@@ -14151,7 +14151,7 @@ function renderOpenCodeProfiles() {
 
     // The auto-detected key counts as an account: it is what the limits card is
     // reading, so leaving it out of the total reports "not set up" next to live
-    // quota. It has no toggle or delete because Token Monitor does not own that
+    // quota. It has no toggle or delete because Remex Meter does not own that
     // credential — OpenCode does — but naming it does belong here: a name is
     // what lets it join an account, and typing an existing account's name is
     // how a user says the two are the same OpenCode account.

@@ -5,7 +5,7 @@ description: Remex Meter's menu-bar utility guidance. Use before any change to t
 
 # Apple menu-bar monitor (Remex Meter)
 
-Remex Meter is a native-feeling macOS menu-bar utility for AI coding tool usage and plan limits. It is not a dashboard, not a card grid, and not a marketing surface. This skill is the house guide for its menu-bar, popover and widget surfaces. Load it together with `macos-design` (and `apple-design` for audits); `AGENTS.md` lists the required set.
+Remex Meter is a native-feeling macOS menu-bar utility for AI coding tool usage and plan limits. It is not a dashboard, not a card grid, and not a marketing surface. This skill is the house guide for its menu-bar, popover and widget surfaces. Load it together with `macos-menubar-app-development`, `macos-design` and `macos-gui-app-design` (and `apple-design` for audits); `AGENTS.md` lists the required set. Where those generic skills disagree with this one about Remex Meter, this one wins.
 
 Read `docs/PRODUCT.md`, `docs/POOLS.md` and `docs/UI.md` before designing anything. Data contracts live in `docs/UPSTREAM.md` and `docs/PROVIDERS.md`; this skill never overrides them.
 
@@ -14,7 +14,7 @@ Read `docs/PRODUCT.md`, `docs/POOLS.md` and `docs/UI.md` before designing anythi
 | Layer | Owner | Notes |
 |---|---|---|
 | Menu bar extra (status item) | Electron `Tray` (`src/electron/tray.js`) | Title text + template image. Label in the UI and docs is **Meter**. |
-| Popover | Frameless Electron `BrowserWindow` anchored with `popoverBounds()` in `src/electron/tray.js` | One window, reused; never one window per module. |
+| Popover | Frameless Electron `BrowserWindow` in `src/electron/meterPopover.js`, anchored with `popoverBounds()` from `src/electron/tray.js`; view model in `src/electron/meterPopoverModel.js` | One window, reused; never one window per module. |
 | Settings | Electron window | Standard macOS settings layout (sidebar or tabs), not a web page. |
 | Data | `src/shared/` collector, limits runtime and provider registry | Renderer receives catalog-driven, already-normalized records over IPC. |
 | Widget (optional) | Swift WidgetKit extension in `native/macos/` fed by the App Group snapshot (`src/electron/macWidget/`) | Opt-in build (`pack:mac:widget`, `dist:mac:widget`). Never required to run the app. |
@@ -31,7 +31,7 @@ Rules:
 2. The page background must be transparent (`backgroundColor: '#00000000'`, `transparent: true`, no opaque `body` fill) or the material is invisible.
 3. **CSS fallback.** `backdrop-filter: blur(...)` only when native vibrancy is unavailable (non-darwin dev runs, or a surface Electron cannot back with a material). Never stack a CSS blur on top of a native material; it doubles the blur and flattens contrast.
 4. **Reduce Transparency.** When the system setting is on, detach the material and paint a solid system-like background (`Window` / `windowBackgroundColor` equivalents for light and dark). Detect it in main (`systemPreferences.getUserDefault('reduceTransparency', 'boolean')` or the `AppleReduceTransparency`-backed accessibility state) and pass the flag to the renderer; do not guess from CSS alone.
-5. Material choice: prefer `popover` or `menu` for the tray popover and `sidebar` / `under-window` for settings. The inherited code uses `hud`; changing it is a deliberate Phase 1 decision recorded in the PR, not a drive-by edit.
+5. Material choice: the Meter popover (`src/electron/meterPopover.js`) uses `popover`. The inherited widget window, which now serves as Settings/details, still uses `hud`; moving it to `sidebar` / `under-window` is part of the settings restyle, not a drive-by edit.
 
 ## 3. Popover modules
 
@@ -99,7 +99,7 @@ Electron cannot load SF Symbols by name (`nativeImage.createFromNamedImage` reso
 
 Copy into the PR description and tick each item.
 
-- [ ] Loaded `apple-menubar-monitor` and `macos-design` (and `apple-design` for audits) before the change.
+- [ ] Loaded `apple-menubar-monitor`, `macos-menubar-app-development`, `macos-design` and `macos-gui-app-design` (and `apple-design` for audits) before the change.
 - [ ] Modules and order come from the catalogs; no provider-specific markup added.
 - [ ] Pools stay separate: Cursor Mode Pool vs Cursor Other Modes, Grok Heavy Weekly vs Grok Bolt Weekly. No summed or synthesized bar.
 - [ ] Unavailable, not-configured and unauthorized states render as text, never as `0%` or an empty bar.

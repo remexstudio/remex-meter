@@ -101,9 +101,10 @@ function routedFetch({
   };
 }
 
-test('collector wires Cline and includes it in the default provider set', () => {
+test('collector wires Cline but leaves it out of the fresh-install provider set', () => {
   assert.equal(typeof providerFetchers().cline, 'function');
-  assert.ok(parseLimitProviders().includes('cline'));
+  assert.ok(!parseLimitProviders().includes('cline'));
+  assert.deepEqual(parseLimitProviders('cline'), ['cline']);
 });
 
 test('clineProvidersPath follows the CLINE_* precedence the session roots use', () => {

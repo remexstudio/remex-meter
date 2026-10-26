@@ -45,7 +45,7 @@ test('respects an explicit Xcode developer directory', () => {
 
 test('derives the Apple team from a Team-prefixed App Group', () => {
   assert.equal(developmentTeamForAppGroup('ABCDE12345.tokenmonitor'), 'ABCDE12345');
-  assert.throws(() => developmentTeamForAppGroup('group.com.example.tokenmonitor'), /Team-prefixed/);
+  assert.throws(() => developmentTeamForAppGroup('group.studio.remex.meter'), /Team-prefixed/);
 });
 
 test('extracts only valid Apple Development identities', () => {
@@ -70,8 +70,8 @@ test('extracts the TeamIdentifier from codesign diagnostics', () => {
 test('writes an arm64 development xcconfig with the shared Team App Group', () => {
   const output = xcconfigContents({
     appGroup: 'ABCDE12345.tokenmonitor',
-    bundleId: 'com.javis.tokenmonitor.widget',
-    widgetKind: 'com.tokenmonitor.dashboard',
+    bundleId: 'studio.remex.meter.widget',
+    widgetKind: 'studio.remex.meter.dashboard',
     developmentTeam: 'ABCDE12345',
     revision: 'abcdef123456',
     timestamp: '2026-09-13T14:00:00Z',
@@ -79,7 +79,7 @@ test('writes an arm64 development xcconfig with the shared Team App Group', () =
     marketingVersion: '0.54.0'
   });
   assert.match(output, /TOKEN_MONITOR_APP_GROUP = ABCDE12345\.tokenmonitor/);
-  assert.match(output, /TOKEN_MONITOR_WIDGET_BUNDLE_ID = com\.javis\.tokenmonitor\.widget/);
+  assert.match(output, /TOKEN_MONITOR_WIDGET_BUNDLE_ID = studio\.remex\.meter\.widget/);
   assert.match(output, /TOKEN_MONITOR_WIDGET_ARCH = arm64/);
   assert.match(output, /TOKEN_MONITOR_WIDGET_SCHEMA_VERSION = 10/);
   assert.match(output, /TOKEN_MONITOR_WIDGET_GIT_REVISION = abcdef123456/);

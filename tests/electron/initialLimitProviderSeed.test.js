@@ -8,6 +8,8 @@ const test = require('node:test');
 const { applyInitialLimitProviderSeed } = require('../../src/electron/initialLimitProviderSeed');
 const { parseLimitProviders } = require('../../src/shared/limits/collector');
 
+const SIX_TOOLS = 'cursor,grok,claude,codex,opencode,deepseek';
+
 const ROOT = path.resolve(__dirname, '../..');
 const main = fs.readFileSync(path.join(ROOT, 'src/electron/main.js'), 'utf8');
 
@@ -47,17 +49,17 @@ test('a completed source snapshot persists, reconfigures, and pushes once', () =
     }
   }), true);
 
-  assert.equal(settings.limitProviders, 'claude,cursor');
+  assert.equal(settings.limitProviders, SIX_TOOLS);
   assert.deepEqual(events, [
-    'save:claude,cursor',
-    'reconfigure:claude,cursor',
-    'push:claude,cursor'
+    `save:${SIX_TOOLS}`,
+    `reconfigure:${SIX_TOOLS}`,
+    `push:${SIX_TOOLS}`
   ]);
   assert.equal(pending, false);
   assert.equal(applyInitialLimitProviderSeed(pending, { clientHealth: { clients: {} } }, { settings }), false);
 });
 
-test('a source-free first run falls back to Codex so Limits remains available', () => {
+test('a source-free first run still enables the six Remex Meter tools', () => {
   const settings = { limitProviders: 'claude,codex' };
 
   assert.equal(applyInitialLimitProviderSeed(true, { clientHealth: { clients: {} } }, {
@@ -65,8 +67,8 @@ test('a source-free first run falls back to Codex so Limits remains available', 
     saveSettings: () => true
   }), true);
 
-  assert.equal(settings.limitProviders, 'codex');
-  assert.deepEqual(parseLimitProviders(settings.limitProviders), ['codex']);
+  assert.equal(settings.limitProviders, SIX_TOOLS);
+  assert.deepEqual(parseLimitProviders(settings.limitProviders), SIX_TOOLS.split(','));
 });
 
 test('usage-derived active status alone does not consume the pending seed', () => {
@@ -101,7 +103,7 @@ test('a failed save restores the prior selection and retries the next snapshot',
     saveSettings: () => true,
     onPersisted: () => { pending = false; events.push('persisted'); }
   }), true);
-  assert.equal(settings.limitProviders, 'cursor');
+  assert.equal(settings.limitProviders, SIX_TOOLS);
   assert.equal(pending, false);
   assert.deepEqual(events, ['persisted']);
 });

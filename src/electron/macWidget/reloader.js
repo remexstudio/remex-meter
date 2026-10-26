@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { execFile } = require('node:child_process');
 
-const DEFAULT_WIDGET_KIND = 'com.tokenmonitor.dashboard';
+const DEFAULT_WIDGET_KIND = 'studio.remex.meter.dashboard';
 const DEFAULT_MIN_INTERVAL_MS = 30_000;
 
 let lastReloadAt = null;

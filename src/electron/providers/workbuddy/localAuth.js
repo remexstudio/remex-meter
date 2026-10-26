@@ -17,7 +17,7 @@ const WORKBUDDY_AUTH_FILE_MAX_BYTES = 1024 * 1024;
 const WORKBUDDY_SESSION_EXPIRY_SKEW_MS = 30 * 1000;
 // Newer WorkBuddy builds seal individual credential fields with the key their
 // own runtime holds, so `auth.accessToken` is a `{$wbEncrypted: 1, envelope: …}`
-// shell rather than a string. Token Monitor cannot open that envelope, and the
+// shell rather than a string. Remex Meter cannot open that envelope, and the
 // distinction matters: an unreadable credential is not the same state as a
 // signed-out app, because signing in again cannot change it.
 const WORKBUDDY_ENCRYPTED_FIELD_MARKER = '$wbEncrypted';
@@ -30,7 +30,7 @@ const WORKBUDDY_SESSION_READ_REASONS = Object.freeze({
   malformed: 'malformed',
   // Readable document without a usable access token or account id.
   incomplete: 'incomplete',
-  // The app sealed its credential fields; Token Monitor cannot decrypt them.
+  // The app sealed its credential fields; Remex Meter cannot decrypt them.
   encrypted: WORKBUDDY_SESSION_REASON_ENCRYPTED,
   // A usable session that is past its expiry.
   expired: 'expired'
@@ -142,7 +142,7 @@ function authError(status, message) {
 // collector logs, and it must say whether signing in again could help.
 function sessionUnavailableMessage(reason) {
   if (reason === WORKBUDDY_SESSION_READ_REASONS.encrypted) {
-    return 'WorkBuddy app credential is encrypted and cannot be read by Token Monitor';
+    return 'WorkBuddy app credential is encrypted and cannot be read by Remex Meter';
   }
   if (reason === WORKBUDDY_SESSION_READ_REASONS.expired) {
     return 'WorkBuddy app session has expired';
@@ -157,7 +157,7 @@ function isEncryptedCredentialField(value) {
     && Object.hasOwn(value, WORKBUDDY_ENCRYPTED_FIELD_MARKER);
 }
 
-// Separates "the app is not signed in" from "Token Monitor cannot read what the
+// Separates "the app is not signed in" from "Remex Meter cannot read what the
 // app wrote". Only the read reason reaches the limits path; callers that just
 // need a session keep using normalizeStoredSession().
 function inspectStoredSession(value, now = Date.now()) {

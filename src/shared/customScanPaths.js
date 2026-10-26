@@ -19,7 +19,7 @@ const CUSTOM_SCAN_PATH_LIMIT_ERRORS = Object.freeze({
 // express. Cursor's scanner accepts only Tokscale's generated usage cache, not
 // native Cursor session data, so an arbitrary user-selected Cursor data root is
 // similarly misleading. Keep both controls hidden rather than accepting paths
-// that appear healthy but contribute no usage. Token Monitor's Kilo row combines
+// that appear healthy but contribute no usage. Remex Meter's Kilo row combines
 // the `kilo` CLI database and `kilocode` extension sources; the former rejects
 // extra roots, so persisted Kilo roots are forwarded to the latter.
 const UNSUPPORTED_CUSTOM_SCAN_CLIENTS = new Set([

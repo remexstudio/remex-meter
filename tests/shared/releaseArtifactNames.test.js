@@ -1,7 +1,6 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -14,7 +13,6 @@ const {
   verifyUpdaterArtifactNames
 } = require('../../scripts/verify-updater-artifact-names');
 const { mergeMacUpdaterMetadata } = require('../../scripts/merge-mac-updater-metadata');
-const { resolveElectronVersionOverride } = require('../../scripts/electron-builder-version');
 const { extractReleaseNotes } = require('../../src/shared/appUpdater');
 const { MAC_APP_MIN_DARWIN_VERSION } = require('../../src/shared/macSystemRequirements');
 
@@ -40,20 +38,29 @@ function macUpdaterMetadata(version, arch) {
   ].join('\n');
 }
 
-test('release artifact templates use GitHub-safe names', () => {
-  const patterns = [
-    rootPackage.build.mac.artifactName,
-    rootPackage.build.linux.artifactName,
-    rootPackage.build.nsis.artifactName,
-    rootPackage.build.portable.artifactName
-  ];
-  assert.deepEqual(patterns, [
-    'Token-Monitor-${version}-${arch}.${ext}',
-    'Token-Monitor-${version}.${ext}',
-    'Token-Monitor-Setup-${version}.${ext}',
-    'Token-Monitor-${version}.${ext}'
+test('the macOS artifact is the Apple Silicon Remex Meter DMG and zip', () => {
+  assert.equal(rootPackage.build.mac.artifactName, 'Remex-Meter-${version}-arm64.${ext}');
+  assert.doesNotMatch(rootPackage.build.mac.artifactName, /\s/);
+  assert.deepEqual(rootPackage.build.mac.target, [
+    { target: 'dmg', arch: ['arm64'] },
+    { target: 'zip', arch: ['arm64'] }
   ]);
-  for (const pattern of patterns) assert.doesNotMatch(pattern, /\s/);
+  assert.equal(rootPackage.build.appId, 'studio.remex.meter');
+  assert.equal(rootPackage.build.productName, 'Remex Meter');
+  assert.deepEqual(rootPackage.build.publish, [{ provider: 'github', owner: 'remexstudio', repo: 'remex-meter' }]);
+});
+
+test('only macOS Apple Silicon is packaged', () => {
+  for (const key of ['win', 'linux', 'nsis', 'portable']) {
+    assert.equal(rootPackage.build[key], undefined, key);
+  }
+  for (const name of Object.keys(rootPackage.scripts)) {
+    assert.doesNotMatch(name, /^dist:(?:win|linux)|:x64$/, name);
+    assert.doesNotMatch(rootPackage.scripts[name], /--(?:win|linux|x64)\b|--platform=(?:win32|linux|darwin-x64)/, name);
+  }
+  assert.match(rootPackage.scripts['dist:mac'], /--mac --arm64/);
+  assert.match(rootPackage.scripts['dist:mac:widget'], /--mac --arm64/);
+  assert.equal(fs.existsSync(path.join(__dirname, '..', '..', '.github', 'workflows', 'release.yml')), false);
 });
 
 test('updater metadata embeds every localized release-note section', () => {
@@ -70,124 +77,9 @@ test('updater metadata embeds every localized release-note section', () => {
   }
 });
 
-test('mac release scripts build native Apple Silicon and Intel artifacts with the Widget', () => {
-  assert.deepEqual(rootPackage.build.mac.target, ['dmg', 'zip']);
-  assert.match(rootPackage.scripts['dist:mac'], /--arm64/);
-  assert.match(rootPackage.scripts['dist:mac:x64'], /--x64/);
-
-  const workflow = fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'workflows', 'release.yml'), 'utf8');
-  assert.match(workflow, /os: macos-26\s+target: mac\s+arch: arm64\s+dist_script: dist:mac:widget/);
-  assert.match(workflow, /os: macos-26-intel\s+target: mac\s+arch: x64\s+dist_script: dist:mac:widget:x64/);
-  assert.doesNotMatch(workflow, /TOKEN_MONITOR_WIDGET_ENABLED: '0'/);
-  assert.match(workflow, /TOKEN_MONITOR_APP_GROUP: \$\{\{ matrix\.target == 'mac' && vars\.TOKEN_MONITOR_APP_GROUP \|\| '' \}\}/);
-  assert.match(workflow, /TOKEN_MONITOR_WIDGET_BUNDLE_ID: \$\{\{ matrix\.target == 'mac' && vars\.TOKEN_MONITOR_WIDGET_BUNDLE_ID \|\| '' \}\}/);
-  assert.match(workflow, /TOKEN_MONITOR_WIDGET_KIND: \$\{\{ matrix\.target == 'mac' && vars\.TOKEN_MONITOR_WIDGET_KIND \|\| '' \}\}/);
-  assert.match(workflow, /DEVELOPMENT_TEAM: \$\{\{ matrix\.target == 'mac' && vars\.DEVELOPMENT_TEAM \|\| '' \}\}/);
-  assert.match(workflow, /for name in TOKEN_MONITOR_APP_GROUP TOKEN_MONITOR_WIDGET_BUNDLE_ID TOKEN_MONITOR_WIDGET_KIND DEVELOPMENT_TEAM/);
-  assert.match(workflow, /if \[\[ "\$TOKEN_MONITOR_APP_GROUP" != group\.\* \]\]; then\s+echo "::error::Official macOS Widget releases require a group\.\* TOKEN_MONITOR_APP_GROUP"\s+exit 1/);
-  assert.match(workflow, /TOKEN_MONITOR_APP_PROVISIONING_PROFILE_BASE64: \$\{\{ secrets\.TOKEN_MONITOR_APP_PROVISIONING_PROFILE_BASE64 \}\}/);
-  assert.match(workflow, /TOKEN_MONITOR_WIDGET_PROVISIONING_PROFILE_BASE64: \$\{\{ secrets\.TOKEN_MONITOR_WIDGET_PROVISIONING_PROFILE_BASE64 \}\}/);
-  assert.doesNotMatch(workflow, /if \[\[ "\$TOKEN_MONITOR_APP_GROUP" != group\.\* \]\]; then\s+exit 0/);
-  assert.match(workflow, /for name in TOKEN_MONITOR_APP_PROVISIONING_PROFILE_BASE64 TOKEN_MONITOR_WIDGET_PROVISIONING_PROFILE_BASE64/);
-  assert.match(workflow, /printf '%s' "\$TOKEN_MONITOR_APP_PROVISIONING_PROFILE_BASE64" \| base64 --decode > "\$app_profile"/);
-  assert.match(workflow, /printf '%s' "\$TOKEN_MONITOR_WIDGET_PROVISIONING_PROFILE_BASE64" \| base64 --decode > "\$widget_profile"/);
-  assert.match(workflow, /TOKEN_MONITOR_APP_PROVISIONING_PROFILE=\$app_profile/);
-  assert.match(workflow, /TOKEN_MONITOR_WIDGET_PROVISIONING_PROFILE=\$widget_profile/);
-  assert.match(workflow, /TOKEN_MONITOR_WIDGET_DISTRIBUTION: '1'[\s\S]*TOKEN_MONITOR_WIDGET_ARCH: \$\{\{ matrix\.arch \}\}/);
-  assert.match(workflow, /npm run verify:mac:widget-app -- "\$app_path"/);
-  assert.match(workflow, /artifacts\/token-monitor-mac-arm64\/latest-mac\.yml \\\s+artifacts\/token-monitor-mac-x64\/latest-mac\.yml/);
-  assert.doesNotMatch(workflow, /latest-mac-(?:arm64|x64)\.yml/);
-
-  const releaseTemplate = fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'RELEASE_TEMPLATE.md'), 'utf8');
-  const intelBullets = releaseTemplate.split('\n').filter((line) => line.startsWith('- **macOS Intel**'));
-  const intelDmg = `Token-Monitor-${rootPackage.version}-x64.dmg`;
-  assert.equal(intelBullets.length, 5);
-  assert.ok(intelBullets.every((line) => line.split(intelDmg).length === 3));
-  assert.ok(intelBullets.every((line) => line.includes(`/download/v${rootPackage.version}/`)));
-  const fullChangelogSummaries = releaseTemplate
-    .split('\n')
-    .filter((line) => line.startsWith('<summary><strong>Full Changelog:</strong>'));
-  assert.equal(fullChangelogSummaries.length, 1);
-  assert.match(fullChangelogSummaries[0], />v\d+\.\d+\.\d+\.\.\.v\d+\.\d+\.\d+<\/a>/);
-  assert.match(fullChangelogSummaries[0], /https:\/\/github\.com\/Javis603\/token-monitor\/compare\/v\d+\.\d+\.\d+\.\.\.v\d+\.\d+\.\d+/);
-  assert.ok(fullChangelogSummaries[0].includes(`v${rootPackage.version}`));
-  assert.match(
-    releaseTemplate,
-    /---\s*<details>\s*<summary><strong>Full Changelog:<\/strong> <a href="[^"]+">v\d+\.\d+\.\d+\.\.\.v\d+\.\d+\.\d+<\/a><\/summary>\s*<!-- github-generated-release-notes -->\s*<\/details>\s*<details>\s*<summary>繁體中文 · 한국어 · 日本語<\/summary>/
-  );
-});
-
-test('release workflow pins Electron only for the Linux artifact', () => {
-  assert.equal(rootPackage.devDependencies.electron, '43.4.0');
-  assert.match(
-    rootPackage.scripts['dist:linux'],
-    /^npm run ensure:tokscale -- --platform=linux-x64 && electron-builder --config scripts\/electron-builder\.config\.js --linux --x64 --publish never$/
-  );
-  assert.equal(resolveElectronVersionOverride({}), undefined);
-  assert.equal(
-    resolveElectronVersionOverride({
-      TOKEN_MONITOR_ELECTRON_TARGET: 'linux',
-      TOKEN_MONITOR_LINUX_ELECTRON_VERSION: '43.2.0'
-    }),
-    '43.2.0'
-  );
-  assert.throws(
-    () => resolveElectronVersionOverride({ TOKEN_MONITOR_LINUX_ELECTRON_VERSION: '43.2.0' }),
-    /only valid for a Linux build/
-  );
-  const defaultConfig = execFileSync(
-    process.execPath,
-    ['-e', "process.stdout.write(String(require('./scripts/electron-builder.config.js').electronVersion || ''))"],
-    {
-      cwd: path.join(__dirname, '..', '..'),
-      env: {
-        ...process.env,
-        TOKEN_MONITOR_ELECTRON_TARGET: '',
-        TOKEN_MONITOR_LINUX_ELECTRON_VERSION: ''
-      }
-    }
-  ).toString();
-  assert.equal(defaultConfig, '');
-  const configWithLinuxOverride = execFileSync(
-    process.execPath,
-    ['-e', "process.stdout.write(String(require('./scripts/electron-builder.config.js').electronVersion || ''))"],
-    {
-      cwd: path.join(__dirname, '..', '..'),
-      env: {
-        ...process.env,
-        TOKEN_MONITOR_ELECTRON_TARGET: 'linux',
-        TOKEN_MONITOR_LINUX_ELECTRON_VERSION: '43.2.0'
-      }
-    }
-  ).toString();
-  assert.equal(configWithLinuxOverride, '43.2.0');
-  assert.throws(
-    () => resolveElectronVersionOverride({
-      TOKEN_MONITOR_ELECTRON_TARGET: 'linux',
-      TOKEN_MONITOR_LINUX_ELECTRON_VERSION: '43.2'
-    }),
-    /must be an exact semver version/
-  );
-
-  const workflow = fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'workflows', 'release.yml'), 'utf8');
-  assert.match(workflow, /if: matrix\.target == 'linux'\s+run: \|\s+echo "TOKEN_MONITOR_ELECTRON_TARGET=linux" >> "\$GITHUB_ENV"/);
-  assert.match(workflow, /echo "TOKEN_MONITOR_LINUX_ELECTRON_VERSION=43\.2\.0" >> "\$GITHUB_ENV"/);
-  assert.match(workflow, /- name: Verify Electron packaging version\s+run: \|\s+node -e /);
-  assert.match(workflow, /require\('\.\/scripts\/electron-builder\.config\.js'\)/);
-  assert.match(workflow, /npm run \$\{\{ matrix\.dist_script \}\}/);
-});
-
 test('release icons use source assets without the legacy generator', () => {
   const projectRoot = path.join(__dirname, '..', '..');
-  const iconSources = new Set([
-    rootPackage.build.mac.icon,
-    rootPackage.build.win.icon,
-    rootPackage.build.linux.icon
-  ]);
-
-  for (const iconSource of iconSources) {
-    assert.ok(fs.existsSync(path.join(projectRoot, iconSource)), `missing release icon source: ${iconSource}`);
-  }
+  assert.ok(fs.existsSync(path.join(projectRoot, rootPackage.build.mac.icon)), `missing release icon source: ${rootPackage.build.mac.icon}`);
   assert.equal(rootPackage.scripts.icons, undefined);
   assert.equal(rootPackage.devDependencies['electron-icon-builder'], undefined);
 });

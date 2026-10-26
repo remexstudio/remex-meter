@@ -166,9 +166,9 @@ function discoverOAuthClient(options = {}) {
   }
   // Desktop OAuth clients cannot keep their client secret confidential. Keep
   // the official Antigravity Hub client as the cross-platform default so a
-  // packaged Token Monitor can sign in without another app or shell-managed
+  // packaged Remex Meter can sign in without another app or shell-managed
   // environment variables. Installed artifacts remain ahead of this fallback
-  // so a newer official client can be picked up without a Token Monitor update.
+  // so a newer official client can be picked up without a Remex Meter update.
   return officialOAuthClient();
 }
 

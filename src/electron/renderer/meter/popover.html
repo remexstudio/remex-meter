@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Meter</title>
+  <link rel="stylesheet" href="popover.css" />
+</head>
+<body>
+  <main id="popover" class="popover" role="dialog" aria-labelledby="popoverTitle" aria-describedby="popoverUpdated" tabindex="-1">
+    <header class="header">
+      <div class="header-text">
+        <h1 id="popoverTitle" class="title">Remex Meter</h1>
+        <p id="popoverUpdated" class="secondary" aria-live="polite">Waiting for the first reading</p>
+      </div>
+      <button id="refreshButton" class="icon-button" type="button" aria-label="Refresh" title="Refresh (⌘R)">
+        <svg class="symbol" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.61-3.89" /><path d="M12.4 1.9v2.6H9.8" /></svg>
+      </button>
+    </header>
+    <div id="modules" class="modules" role="list" aria-label="Tools"></div>
+    <footer class="footer">
+      <button id="settingsButton" class="text-button" type="button" title="Settings (⌘,)">Settings…</button>
+      <button id="quitButton" class="text-button" type="button" title="Quit (⌘Q)">Quit</button>
+    </footer>
+  </main>
+  <script src="popover.js"></script>
+</body>
+</html>

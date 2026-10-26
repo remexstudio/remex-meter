@@ -2,7 +2,7 @@
 
 const semver = require('semver');
 
-const GITHUB_REPO = 'Javis603/token-monitor';
+const GITHUB_REPO = 'remexstudio/remex-meter';
 const RELEASES_LATEST_URL = `https://github.com/${GITHUB_REPO}/releases/latest`;
 const REQUEST_TIMEOUT_MS = 10 * 1000;
 const APP_UPDATE_BACKGROUND_COOLDOWN_MS = 24 * 60 * 60 * 1000;
@@ -599,7 +599,7 @@ async function checkLatestRelease(currentVersion) {
           // GitHub's public web route returns release JSON through content negotiation.
           // electron-updater uses the same route so public checks avoid api.github.com quotas.
           'accept': 'application/json',
-          'user-agent': `token-monitor/${currentVersion || '0.0.0'}`
+          'user-agent': `remex-meter/${currentVersion || '0.0.0'}`
         }
       });
       if (!response.ok) {
