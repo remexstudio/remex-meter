@@ -94,21 +94,22 @@ Reference: `docs/providers/cursor.md`, `src/shared/providers/cursor/{limits,prob
 - **Usage:** self-synced. The collector hands its `SelfSyncThrottle` and tokscale resolver to `createCursorSelfSync()`, which syncs Cursor's server-side usage into tokscale's cache; tokscale then counts it. The generated cache is not watched.
 - **Accounts:** one managed list (desktop-discovered access token plus manually added session tokens), shared by self-sync and limits. Every enabled account is probed independently; identity prefers the canonical API subject.
 - **Limits:** `probe()` sends the `WorkosCursorSessionToken` cookie over `node:https` to `cursor.com/api/usage-summary` and `cursor.com/api/auth/me`, then `cursor.com/api/usage?user=<sub>` for legacy request plans, plus a best-effort `POST cursor.com/api/dashboard/get-sand-usage-status` (5 s cap) for the Grok Bot allowance. `fetchCursorAccountLimits()` then emits, in order:
-  - `Requests` (legacy request plans), **or** `Cursor Models` (`plan.autoPercentUsed`) and `Other Models` (`plan.apiPercentUsed`) as separate windows, **or** `Overall` (only when the summary carries an `overall` block);
-  - `Grok Bot` (weekly) when the account has a non-zero included limit;
-  - `Team pool` when team pooled usage is present;
-  - `On-demand spend` (`metric: 'spend'`, no meter).
+  - `cursor.requests` (`Requests`) for a legacy request plan, **or** `cursor.modePool` / `cursor.otherModes` (`Cursor Models` from `plan.autoPercentUsed`, `Other Models` from `plan.apiPercentUsed`) as separate windows, **or** `cursor.overall` (`Overall`, only when the summary carries an `overall` block and `planPercent` is not null);
+  - `cursor.grokBot` (`Grok Bot`, weekly) when the account has a non-zero included limit;
+  - `cursor.teamPool` (`Team pool`) when team pooled usage is present;
+  - `cursor.onDemand` (`On-demand spend`, `metric: 'spend'`, no meter).
+- `parseUsageSummary()` no longer defaults `planPercent` to `0` when no percent and no used/limit pair came back. A missing percentage stays `null`. See `docs/POOLS.md`.
 - Upstream rule, kept: never synthesize an overall total by summing model pools. See `docs/POOLS.md`.
 
 ## Grok sources
 
-Reference: `src/shared/providers/grok/limits.js`.
+Reference: `docs/providers/grok.md`, `src/shared/providers/grok/limits.js`.
 
-- **Usage:** tracked client `grok` (label "Grok Build"), parsed by tokscale from `~/.grok/sessions` and `~/.grok/logs/unified.jsonl` (`GROK_HOME` overrides the root).
+- **Usage:** tracked client `grok` (label "Grok"), parsed by tokscale from `~/.grok/sessions` and `~/.grok/logs/unified.jsonl` (`GROK_HOME` overrides the root).
 - **Credential precedence:** explicit setting → `GROK_BEARER_TOKEN` env → `~/.grok/auth.json` (OIDC scope preferred, then legacy `/sign-in`, then any keyed entry). No GUI credential field.
 - **Limits:** when the credential came from `auth.json`, first the Grok CLI (`grok agent stdio`, JSON-RPC `initialize` then `x.ai/billing`, 5 s timeout); on failure other than unauthorized, the grok.com gRPC-web endpoint `grok_api_v2.GrokBuildBilling/GetGrokCreditsConfig` with the bearer token, with one retry on transient network errors.
-- **Shape today:** both paths produce **one** `billing` window from a single credit percentage, labelled `Weekly` / `Monthly` / `Billing` from the period length. There is no Heavy vs Bolt split in the upstream parser. Remex Meter's two Grok pools therefore have no source yet ([issue #4](https://github.com/remexstudio/remex-meter/issues/4)).
-- **Zero fallback to review:** `parseGrokGrpcWebBilling()` returns `0` when the payload carries a usage period but no percent field (`noUsageYet`). That conflicts with "unavailable is not zero" unless the payload is proven to mean zero usage; tracked in issue #4.
+- **Shape:** both paths produce **one** `billing` window, `limitId: grok.credits`, from a single credit percentage, labelled `Weekly` / `Monthly` / `Billing` from the period. Heavy and Bolt are not fields on this payload. The popover ids `grok.heavyWeekly` and `grok.boltWeekly` stay empty. Evidence: `docs/providers/grok.md`.
+- **Zero fallback:** `parseGrokGrpcWebBilling()` returns `0` only when a usage period and a future reset are present and the message has no float (`noUsageYet`, the proto3 omission of a zero). Any other missing percent is unavailable. The JSON path does not infer that zero. Detail and sources: `docs/providers/grok.md`.
 
 ## Native widget
 

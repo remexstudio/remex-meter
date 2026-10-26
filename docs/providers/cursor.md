@@ -29,7 +29,7 @@ The generated tokscale Cursor cache is not watched because Token Monitor's own s
 
 Every enabled saved account is probed independently. Stable identity prefers the canonical API subject; opaque local fallback ids remain distinct rather than merging unrelated accounts. API email is presentation metadata, not the only identity key.
 
-The dashboard mapping preserves separate official model pools, legacy request plans, enterprise/team pooled usage, optional Grok Bot allowance and on-demand spend. Never synthesize an overall total by summing model pools. Grok Bot is best effort and must not fail the main account row. A zero uncapped spend is hidden; positive uncapped spend remains visible.
+The dashboard mapping preserves separate official model pools, legacy request plans, enterprise/team pooled usage, optional Grok Bot allowance and on-demand spend. Each window carries a stable `limitId` (`cursor.modePool`, `cursor.otherModes`, `cursor.requests`, `cursor.overall`, `cursor.grokBot`, `cursor.teamPool`, `cursor.onDemand`). The popover selects the two pools by id. A request plan or an overall-only account does not receive a pool id. Never synthesize an overall total by summing model pools. `planPercent` stays null when the summary returned neither a percentage nor both sides of a used/limit pair. Grok Bot is best effort and must not fail the main account row. A zero uncapped spend is hidden; positive uncapped spend remains visible.
 
 Account-scoped enable/disable affects limits collection only. The active tokscale account and self-synced history are managed by the explicit Cursor lifecycle operations.
 

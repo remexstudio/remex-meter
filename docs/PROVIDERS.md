@@ -5,7 +5,7 @@ Remex Meter enables six tools. Each is an existing upstream tracked client (usag
 | Order | Tool | Tracked client id (usage) | Limits provider id | Upstream note |
 |---|---|---|---|---|
 | 1 | Cursor | `cursor` | `cursor` | `docs/providers/cursor.md` |
-| 2 | Grok | `grok` | `grok` | none; see `src/shared/providers/grok/limits.js` |
+| 2 | Grok | `grok` | `grok` | `docs/providers/grok.md` |
 | 3 | Claude Code | `claude` | `claude` (label "Claude", settings label "Claude Code") | `docs/providers/claude.md` |
 | 4 | Codex | `codex` | `codex` | `docs/providers/codex.md` |
 | 5 | OpenCode | `opencode` | `opencode` | `docs/providers/opencode.md` |

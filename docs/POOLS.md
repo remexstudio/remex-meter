@@ -12,26 +12,30 @@ Some providers meter one plan through several independent allowances ("pools"). 
 
 ## Cursor
 
-| Module | Upstream window today | Source field |
-|---|---|---|
-| **Cursor Mode Pool** | `Cursor Models` (`kind: 'billing'`) | `cursor.com/api/usage-summary` → `individualUsage.plan.autoPercentUsed` |
-| **Cursor Other Modes** | `Other Models` (`kind: 'billing'`) | `cursor.com/api/usage-summary` → `individualUsage.plan.apiPercentUsed` |
+| Module | `limitId` | Upstream window | Source field |
+|---|---|---|---|
+| **Cursor Mode Pool** | `cursor.modePool` | `Cursor Models` (`kind: 'billing'`) | `cursor.com/api/usage-summary` → `individualUsage.plan.autoPercentUsed` |
+| **Cursor Other Modes** | `cursor.otherModes` | `Other Models` (`kind: 'billing'`) | `cursor.com/api/usage-summary` → `individualUsage.plan.apiPercentUsed` |
 
 - These are two different allowances on one Cursor plan. **Never merge them into one bar**, and never show `plan.totalPercentUsed` as if it were either pool.
-- Upstream emits the pair only on percent-based plans. A legacy request plan yields a single `Requests` window; some accounts yield `Overall`. In those cases Mode Pool and Other Modes render as unavailable, and the provider's own window is shown under its own name. Do not relabel `Requests` or `Overall` as a pool.
+- The popover selects each row by `limitId`. The upstream label is not the contract.
+- Upstream emits a pool id only for a percent that was actually present. One side can be present without the other; the missing side renders Unavailable and is not filled with `0`.
+- A legacy request plan (`requestsUsed` and `requestsLimit > 0`) emits `cursor.requests` labelled `Requests` and does not also emit the pool ids, even if `autoPercentUsed` / `apiPercentUsed` are present on the same summary. An account with `individualUsage.overall` and no percent pools emits `cursor.overall` labelled `Overall`, and only when `planPercent` is a returned or derived figure rather than a fill-in zero. In both cases Mode Pool and Other Modes render as Unavailable, with text that names the window the account did report. Do not relabel `Requests` or `Overall` as a pool.
+- `parseUsageSummary()` keeps `plan.totalPercentUsed` when it is present, and otherwise derives a percentage only from a used/limit pair whose used amount and positive limit were both returned. If neither exists, `planPercent` is `null`. It is not `0`.
 - Both pools share the billing-cycle reset (`billingCycleEnd`).
-- Other Cursor windows stay separate modules or lines: `Grok Bot` (a weekly allowance on the Cursor account; unrelated to the Grok pools below), `Team pool`, and `On-demand spend` (money, not a meter).
+- Other Cursor windows stay separate rows, with their own ids: `cursor.grokBot` (`Grok Bot`, a weekly allowance on the Cursor account; unrelated to the Grok pools below), `cursor.teamPool` (`Team pool`), and `cursor.onDemand` (`On-demand spend`, money, not a meter).
 
 ## Grok
 
-| Module | Upstream window today | Source |
-|---|---|---|
-| **Grok Heavy Weekly** | none | not yet identified |
-| **Grok Bolt Weekly** | none | not yet identified |
+| Module | `limitId` | Upstream window | Source |
+|---|---|---|---|
+| **Grok Heavy Weekly** | `grok.heavyWeekly` | none | not in any documented payload; see `docs/providers/grok.md` |
+| **Grok Bolt Weekly** | `grok.boltWeekly` | none | not in any documented payload; see `docs/providers/grok.md` |
 
 - These are two different weekly allowances. **Never sum them**, and never show one as the other.
-- The upstream Grok provider (`src/shared/providers/grok/limits.js`) reads one credit percentage, from the CLI `x.ai/billing` RPC or the grok.com `GetGrokCreditsConfig` gRPC-web endpoint, and emits **one** billing window. That window is not Heavy, not Bolt and not their sum. Until a source that reports the two allowances separately is identified and documented, both Grok modules render as unavailable. Whether the single window is shown elsewhere is a Phase 2 decision ([issue #4](https://github.com/remexstudio/remex-meter/issues/4)).
-- Upstream's `parseGrokGrpcWebBilling()` returns `0` when a usage period exists but no percent field does. Treat that as unverified until issue #4 resolves it.
+- The Grok provider reads one credit percentage, from the CLI `x.ai/billing` RPC or the grok.com `GetGrokCreditsConfig` gRPC-web endpoint, and emits **one** billing window with `limitId: grok.credits`. The label is the period (`Weekly`, `Monthly`, or `Billing`). That window is not Heavy, not Bolt, and not their sum. The popover shows it under that period label and renders both pool rows as Unavailable, with text that says Grok does not report the allowance separately.
+- `productUsage` shares (Grok Build, Grok Chat, and the other products named in `docs/providers/grok.md`) are shares of `grok.credits`. They are not parsed into pool windows.
+- `parseGrokGrpcWebBilling()` returns `0` only for the gated proto3 case: a usage period and a future reset are present, and the message contains no float at all. Anything else with no percent is unavailable, not `0`. The JSON path does not infer that zero. An explicit `0` from either path is kept. The evidence and the gate are in `docs/providers/grok.md`.
 
 ## Adding a pool
 
