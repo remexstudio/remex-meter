@@ -50,7 +50,12 @@ test('usage and limits stay separate facts', () => {
   assert.equal(claude.usage.costUsd, 1.5);
   assert.equal(claude.usage.tokensText, '12.3K');
   assert.equal(claude.usage.costText, '$1.50');
-  assert.deepEqual(claude.quota.groups[0].rows, [{ type: 'meter', label: 'Session', usedPercent: 30, resetsAt: null }]);
+  const row = claude.quota.groups[0].rows[0];
+  assert.equal(row.type, 'meter');
+  assert.equal(row.label, 'Session');
+  assert.equal(row.usedPercent, 30);
+  assert.equal(row.voiceText, 'Session, 30 percent used');
+  assert.equal(row.limitId, undefined);
 });
 
 test('cost is shown to the cent, with tiny amounts marked instead of rounded to zero', () => {
@@ -68,21 +73,128 @@ test('each provider window is its own meter with the exact provider value, never
         provider: 'cursor',
         status: 'ok',
         windows: [
-          window({ label: 'Cursor Models', usedPercent: 41.6, resetsAt: '2026-10-01T00:00:00.000Z' }),
-          window({ label: 'Other Models', usedPercent: 7 }),
-          window({ label: 'On-demand spend', metric: 'spend', used: 3.25, currency: 'USD', showMeter: false })
+          window({ limitId: 'cursor.modePool', label: 'Cursor Models', usedPercent: 41.6, resetsAt: '2026-10-01T00:00:00.000Z' }),
+          window({ limitId: 'cursor.otherModes', label: 'Other Models', usedPercent: 7 }),
+          window({ limitId: 'cursor.onDemand', label: 'On-demand spend', metric: 'spend', used: 3.25, currency: 'USD', showMeter: false }),
+          window({ limitId: 'cursor.grokBot', kind: 'weekly', label: 'Grok Bot', usedPercent: 12 })
         ]
       }]
     }
   };
-  const cursor = module(buildMeterPopoverModel({ stats, settings: defaults }), 'cursor');
+  const cursor = module(buildMeterPopoverModel({ stats, settings: defaults, now: Date.parse('2026-10-26T00:00:00.000Z') }), 'cursor');
   assert.equal(cursor.quota.state, 'ok');
-  assert.deepEqual(cursor.quota.groups[0].rows, [
-    { type: 'meter', label: 'Cursor Models', usedPercent: 41.6, resetsAt: '2026-10-01T00:00:00.000Z' },
-    { type: 'meter', label: 'Other Models', usedPercent: 7, resetsAt: null },
-    { type: 'amount', label: 'On-demand spend', amountText: '$3.25' }
+  const rows = cursor.quota.groups[0].rows;
+  assert.deepEqual(rows.map((row) => [row.limitId, row.type, row.label, row.usedPercent ?? row.amountText]), [
+    ['cursor.modePool', 'meter', 'Cursor Mode Pool', 41.6],
+    ['cursor.otherModes', 'meter', 'Cursor Other Modes', 7],
+    ['cursor.onDemand', 'amount', 'On-demand spend', '$3.25'],
+    ['cursor.grokBot', 'meter', 'Grok Bot', 12]
   ]);
+  assert.equal(rows[0].voiceText, 'Cursor Mode Pool, 41.6 percent used, reset due');
+  assert.equal(rows[1].voiceText, 'Cursor Other Modes, 7 percent used');
+  assert.equal(rows.some((row) => row.usedPercent === 24.3), false, 'pools are not averaged');
   assert.equal(cursor.usage.tokens, 0, 'no tokens today is a real usage figure');
+});
+
+test('pool rows follow limitId, never the upstream label', () => {
+  const stats = {
+    periods: { today: {} },
+    limits: {
+      providers: [{
+        provider: 'cursor',
+        status: 'ok',
+        windows: [
+          window({ limitId: 'cursor.otherModes', label: 'Cursor Models', usedPercent: 8 }),
+          window({ limitId: 'cursor.modePool', label: 'Other Models', usedPercent: 80 })
+        ]
+      }]
+    }
+  };
+  const rows = module(buildMeterPopoverModel({ stats, settings: defaults }), 'cursor').quota.groups[0].rows;
+  assert.deepEqual(rows.map((row) => [row.limitId, row.label, row.usedPercent, row.level]), [
+    ['cursor.modePool', 'Cursor Mode Pool', 80, 'warning'],
+    ['cursor.otherModes', 'Cursor Other Modes', 8, 'normal']
+  ]);
+  assert.match(rows[0].voiceText, /Cursor Mode Pool, 80 percent used, running low/);
+});
+
+test('a label without a pool id is not adopted as that pool', () => {
+  const stats = {
+    periods: { today: {} },
+    limits: {
+      providers: [{
+        provider: 'cursor',
+        status: 'ok',
+        windows: [window({ label: 'Cursor Models', usedPercent: 41 })]
+      }]
+    }
+  };
+  const rows = module(buildMeterPopoverModel({ stats, settings: defaults }), 'cursor').quota.groups[0].rows;
+  assert.deepEqual(rows.map((row) => [row.type, row.label, row.usedPercent ?? null]), [
+    ['state', 'Cursor Mode Pool', null],
+    ['state', 'Cursor Other Modes', null],
+    ['meter', 'Cursor Models', 41]
+  ]);
+  assert.equal(rows[0].voiceText.includes('0 percent'), false);
+  assert.equal(rows[0].text, 'Unavailable');
+});
+
+test('Requests and Overall stay under their own names and leave both Cursor pools unavailable', () => {
+  function rowsFor(limitId, label, usedPercent) {
+    const stats = {
+      periods: { today: {} },
+      limits: { providers: [{ provider: 'cursor', status: 'ok', windows: [window({ limitId, label, usedPercent })] }] }
+    };
+    return module(buildMeterPopoverModel({ stats, settings: defaults }), 'cursor').quota.groups[0].rows;
+  }
+  for (const [limitId, label, hint] of [
+    ['cursor.requests', 'Requests', 'This account reports Requests, not Mode Pool.'],
+    ['cursor.overall', 'Overall', 'This account reports Overall, not Mode Pool.']
+  ]) {
+    const rows = rowsFor(limitId, label, 70);
+    assert.deepEqual(rows.map((row) => [row.type, row.label, row.usedPercent ?? row.text]), [
+      ['state', 'Cursor Mode Pool', 'Unavailable'],
+      ['state', 'Cursor Other Modes', 'Unavailable'],
+      ['meter', label, 70]
+    ], label);
+    assert.equal(rows[0].hint, hint, label);
+    assert.equal(rows[1].hint, hint.replace('Mode Pool', 'Other Modes'), label);
+    assert.equal(rows[0].voiceText, `Cursor Mode Pool, Unavailable. ${hint}`);
+  }
+});
+
+test('Grok Heavy and Bolt stay unavailable and the credit window is not relabelled as either', () => {
+  const stats = {
+    periods: { today: {} },
+    limits: {
+      providers: [{
+        provider: 'grok',
+        status: 'ok',
+        windows: [window({ limitId: 'grok.credits', label: 'Weekly', usedPercent: 16.5, resetsAt: '2026-11-02T00:00:00.000Z' })]
+      }]
+    }
+  };
+  const grok = module(buildMeterPopoverModel({ stats, settings: defaults, now: Date.parse('2026-10-26T00:00:00.000Z') }), 'grok');
+  const rows = grok.quota.groups[0].rows;
+  assert.equal(grok.quota.state, 'ok');
+  assert.deepEqual(rows.map((row) => [row.limitId, row.type, row.label, row.usedPercent ?? row.text]), [
+    ['grok.heavyWeekly', 'state', 'Grok Heavy Weekly', 'Unavailable'],
+    ['grok.boltWeekly', 'state', 'Grok Bolt Weekly', 'Unavailable'],
+    ['grok.credits', 'meter', 'Weekly', 16.5]
+  ]);
+  assert.equal(rows[0].hint, 'Grok does not report a separate Heavy weekly allowance.');
+  assert.equal(rows[1].hint, 'Grok does not report a separate Bolt weekly allowance.');
+  assert.equal(rows[0].voiceText.includes('0 percent'), false);
+  assert.match(rows[2].voiceText, /^Weekly, 16\.5 percent used, resets /);
+  assert.equal(rows.some((row) => row.usedPercent === 33), false);
+});
+
+test('a non-ok provider does not turn its missing pools into a zero meter', () => {
+  const stats = { periods: { today: {} }, limits: { providers: [{ provider: 'cursor', status: 'unauthorized', windows: [] }] } };
+  const cursor = module(buildMeterPopoverModel({ stats, settings: defaults }), 'cursor');
+  assert.equal(cursor.quota.state, 'unauthorized');
+  assert.equal(cursor.quota.text, 'Sign in required');
+  assert.deepEqual(cursor.quota.groups, []);
 });
 
 test('a window without a percentage is unavailable text, not an empty meter', () => {
@@ -131,7 +243,10 @@ test('DeepSeek balance is an amount, not a meter', () => {
     limits: { providers: [{ provider: 'deepseek', status: 'ok', windows: [window({ label: 'Balance', metric: 'credits', remaining: 12.5, currency: 'CNY' })] }] }
   };
   const deepseek = module(buildMeterPopoverModel({ stats, settings: defaults }), 'dsh');
-  assert.deepEqual(deepseek.quota.groups[0].rows, [{ type: 'amount', label: 'Balance', amountText: '¥12.50' }]);
+  assert.equal(deepseek.quota.groups[0].rows[0].type, 'amount');
+  assert.equal(deepseek.quota.groups[0].rows[0].amountText, '¥12.50');
+  assert.equal(deepseek.quota.groups[0].rows[0].voiceText, 'Balance, ¥12.50');
+  assert.equal(deepseek.quota.groups[0].rows.some((row) => row.type === 'meter'), false);
 });
 
 test('several accounts keep separate groups and honour email masking', () => {

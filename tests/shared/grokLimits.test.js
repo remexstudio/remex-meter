@@ -309,6 +309,7 @@ test('parseGrokBilling produces a single monthly window from a typical response'
   const windows = parseGrokBilling(body);
   assert.equal(windows.length, 1);
   assert.equal(windows[0].kind, 'billing');
+  assert.equal(windows[0].limitId, 'grok.credits');
   assert.equal(windows[0].label, 'Monthly');
   assert.equal(windows[0].usedPercent, 67);
   assert.equal(windows[0].resetsAt, '2026-07-01T00:00:00.000Z');
@@ -378,6 +379,95 @@ test('parseGrokGrpcWebBilling labels unknown positive cycles as Billing', () => 
   assert.equal(windows[0].usedPercent, 15);
   assert.equal(windows[0].resetsAt, '2026-06-15T00:00:00.000Z');
   assert.equal(windows[0].windowMinutes, 14 * 24 * 60);
+});
+
+test('parseGrokBilling gives the single credit window a stable id and ignores product shares', () => {
+  const windows = parseGrokBilling({
+    config: {
+      creditUsagePercent: 46,
+      currentPeriod: {
+        type: 'USAGE_PERIOD_TYPE_WEEKLY',
+        start: '2026-10-19T00:00:00Z',
+        end: '2026-10-26T00:00:00Z'
+      },
+      productUsage: [
+        { product: 'GrokBuild', usagePercent: 41 },
+        { product: 'GrokChat', usagePercent: 5 },
+        { product: 'Heavy', usagePercent: 90 },
+        { product: 'Bolt', usagePercent: 10 }
+      ]
+    }
+  });
+  assert.equal(windows.length, 1);
+  assert.equal(windows[0].limitId, 'grok.credits');
+  assert.equal(windows[0].usedPercent, 46);
+  assert.equal(windows[0].label, 'Weekly');
+  assert.equal(windows.some((window) => window.limitId === 'grok.heavyWeekly' || window.limitId === 'grok.boltWeekly'), false);
+});
+
+test('parseGrokBilling keeps an explicit zero and does not invent one from a missing percent', () => {
+  const zero = parseGrokBilling({
+    config: {
+      creditUsagePercent: 0,
+      currentPeriod: { type: 'USAGE_PERIOD_TYPE_WEEKLY', start: '2026-10-19T00:00:00Z', end: '2026-10-26T00:00:00Z' }
+    }
+  });
+  assert.equal(zero[0].usedPercent, 0);
+  assert.equal(zero[0].limitId, 'grok.credits');
+  assert.throws(
+    () => parseGrokBilling({
+      config: {
+        currentPeriod: { type: 'USAGE_PERIOD_TYPE_WEEKLY', start: '2026-10-19T00:00:00Z', end: '2026-10-26T00:00:00Z' }
+      }
+    }),
+    /no monthly quota/
+  );
+});
+
+function periodOnlyFrame({ endEpoch, withPeriod = true, strayFloat = null }) {
+  const parts = [protoBytesField(5, protoTimestamp(endEpoch))];
+  if (withPeriod) parts.push(protoBytesField(8, protoVarintField(1, 2)));
+  if (strayFloat !== null) parts.push(protoFixed32FloatField(9, strayFloat));
+  return grpcFrame(protoBytesField(1, Buffer.concat(parts)));
+}
+
+test('parseGrokGrpcWebBilling treats a period with no float as proto3 zero usage', () => {
+  const endEpoch = Date.parse('2026-10-26T00:00:00Z') / 1000;
+  const nowMs = Date.parse('2026-10-20T00:00:00Z');
+  const windows = parseGrokGrpcWebBilling(periodOnlyFrame({ endEpoch }), nowMs);
+  assert.equal(windows.length, 1);
+  assert.equal(windows[0].limitId, 'grok.credits');
+  assert.equal(windows[0].usedPercent, 0);
+  assert.equal(windows[0].label, 'Weekly');
+  assert.notEqual(windows[0].limitId, 'grok.heavyWeekly');
+});
+
+test('parseGrokGrpcWebBilling does not invent zero without a usage period or when another float is present', () => {
+  const endEpoch = Date.parse('2026-10-26T00:00:00Z') / 1000;
+  const nowMs = Date.parse('2026-10-20T00:00:00Z');
+  assert.throws(
+    () => parseGrokGrpcWebBilling(periodOnlyFrame({ endEpoch, withPeriod: false }), nowMs),
+    (error) => error.status === 'unavailable'
+  );
+  assert.throws(
+    () => parseGrokGrpcWebBilling(periodOnlyFrame({ endEpoch, strayFloat: 12.5 }), nowMs),
+    (error) => error.status === 'unavailable'
+  );
+});
+
+test('parseGrokGrpcWebBilling keeps an encoded zero float as zero', () => {
+  const endEpoch = Date.parse('2026-10-26T00:00:00Z') / 1000;
+  const nowMs = Date.parse('2026-10-20T00:00:00Z');
+  const windows = parseGrokGrpcWebBilling(
+    grpcFrame(billingCycleProtobufPayload({
+      usedPercent: 0,
+      startEpoch: Date.parse('2026-10-19T00:00:00Z') / 1000,
+      endEpoch
+    })),
+    nowMs
+  );
+  assert.equal(windows[0].usedPercent, 0);
+  assert.equal(windows[0].limitId, 'grok.credits');
 });
 
 test('parseGrokBilling throws when monthly window cannot be built', () => {
@@ -520,6 +610,7 @@ test('fetchGrokLimits prefers Grok CLI RPC billing before bearer web fallback', 
   assert.match(r.accountKey, /^sha256:/);
   assert.equal(r.windows.length, 1);
   assert.equal(r.windows[0].label, 'Monthly');
+  assert.equal(r.windows[0].limitId, 'grok.credits');
   assert.equal(r.windows[0].usedPercent, 25);
   assert.ok(rpcCalled);
   assert.ok(!JSON.stringify(r).includes('eyJsecret'));

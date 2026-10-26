@@ -15,6 +15,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
 const { normalizeLimitProvider } = require('../../limits/core');
+const { GROK_CREDITS } = require('../../limits/poolModules');
 const { cleanSecret } = require('../../limits/providerHelpers');
 const { hashKey } = require('../../hashKey');
 const { createOutboundFetch } = require('../../outboundFetch');
@@ -188,6 +189,8 @@ function buildWindow(label, used, limit, resetsAt, windowMinutes = null) {
   return {
     kind: 'billing',
     label,
+    // The only allowance this provider reports. Not Heavy, not Bolt.
+    limitId: GROK_CREDITS,
     usedPercent: clampPercent((used / limit) * 100),
     resetsAt,
     windowMinutes,
@@ -438,6 +441,12 @@ function parseGrokGrpcWebBilling(data, nowMs = Date.now()) {
     const key = field.path.join('.');
     return key.startsWith('1.6') || (key === '1.8.1' && (field.value === 1 || field.value === 2));
   });
+  // proto3 omits a zero float, so a fresh usage period cannot put 0 on the
+  // wire. Treat that omission as 0% only when the message also proves the
+  // period (a usage-period marker and a future reset) and contains no float
+  // at all. Any other shape is unavailable, not a guessed zero. The JSON
+  // credits path does not use this inference: a missing creditUsagePercent
+  // there stays missing. See docs/providers/grok.md.
   const noUsageYet = !percentField && scan.fixed32Fields.length === 0 && preferredReset && hasUsagePeriod;
   const percent = percentField ? percentField.value : noUsageYet ? 0 : null;
   if (percent === null) {

@@ -107,12 +107,25 @@ test('parseUsageSummary falls back to enterprise pooled usage when individual da
   assert.equal(result.planLimitUsd, 281220);
 });
 
-test('parseUsageSummary tolerates missing fields', () => {
+test('parseUsageSummary leaves an unknown plan percentage null instead of zero', () => {
   const result = parseUsageSummary({});
-  assert.equal(result.planPercent, 0);
+  assert.equal(result.planPercent, null);
+  assert.equal(result.autoPercent, null);
+  assert.equal(result.apiPercent, null);
   assert.equal(result.planUsedUsd, 0);
   assert.equal(result.billingCycleEnd, null);
   assert.equal(result.membershipType, null);
+});
+
+test('parseUsageSummary does not turn a limit with no used amount into 0%', () => {
+  const result = parseUsageSummary({ individualUsage: { plan: { limit: 2000 } } });
+  assert.equal(result.planPercent, null);
+  assert.equal(result.planLimitUsd, 20);
+});
+
+test('parseUsageSummary keeps an explicit zero and a derived zero', () => {
+  assert.equal(parseUsageSummary({ individualUsage: { plan: { totalPercentUsed: 0, used: 0, limit: 2000 } } }).planPercent, 0);
+  assert.equal(parseUsageSummary({ individualUsage: { plan: { used: 0, limit: 2000 } } }).planPercent, 0);
 });
 
 test('parseUserInfo picks email/name/sub', () => {

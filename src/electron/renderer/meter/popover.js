@@ -83,11 +83,18 @@
     return 'normal';
   }
 
-  function meterRow(module, row) {
+  function percentLabel(used) {
+    const number = Math.round(Number(used) * 10) / 10;
+    if (!Number.isFinite(number)) return '';
+    return Number.isInteger(number) ? String(number) : number.toFixed(1);
+  }
+
+  function meterRow(row) {
     const used = Number(row.usedPercent);
-    const shown = Math.round(used);
-    const rowLevel = level(used);
-    const reset = resetText(row.resetsAt);
+    if (!Number.isFinite(used)) return stateRow({ ...row, type: 'state', text: 'Unavailable', symbol: 'warning' });
+    const shown = percentLabel(used);
+    const rowLevel = row.level || level(used);
+    const reset = row.resetText || resetText(row.resetsAt);
     const node = el('div', `row level-${rowLevel}`);
     node.setAttribute('role', 'listitem');
 
@@ -105,7 +112,7 @@
     meter.setAttribute('aria-valuemax', '100');
     meter.setAttribute('aria-valuenow', String(Math.max(0, Math.min(100, used))));
     const cue = rowLevel === 'critical' ? ', at or near the limit' : rowLevel === 'warning' ? ', running low' : '';
-    meter.setAttribute('aria-valuetext', `${module.label} ${row.label}, ${shown} percent used${cue}${reset ? `, ${reset.toLowerCase()}` : ''}`);
+    meter.setAttribute('aria-valuetext', row.voiceText || `${row.label}, ${shown} percent used${cue}${reset ? `, ${reset.toLowerCase()}` : ''}`);
     const fill = el('div', 'meter-fill');
     fill.style.width = `${Math.max(0, Math.min(100, used))}%`;
     meter.appendChild(fill);
@@ -118,6 +125,7 @@
   function amountRow(row) {
     const node = el('div', 'row');
     node.setAttribute('role', 'listitem');
+    if (row.voiceText) node.setAttribute('aria-label', row.voiceText);
     const line = el('div', 'row-line');
     line.appendChild(el('span', 'row-label', row.label));
     line.appendChild(el('span', 'row-value', row.amountText));
@@ -128,13 +136,17 @@
   function stateRow(row) {
     const node = el('div', 'row');
     node.setAttribute('role', 'listitem');
+    const voice = row.voiceText || `${row.label}, ${row.text || 'Unavailable'}`;
+    node.setAttribute('aria-label', voice);
     const line = el('div', 'row-line');
     line.appendChild(el('span', 'row-label', row.label));
-    const value = el('span', 'row-value secondary');
-    value.appendChild(symbol('warning'));
-    value.appendChild(el('span', '', row.text));
+    const value = el('span', 'row-value');
+    const glyph = symbol(row.symbol || 'warning');
+    if (glyph) value.appendChild(glyph);
+    value.appendChild(el('span', 'state-text', row.text || 'Unavailable'));
     line.appendChild(value);
     node.appendChild(line);
+    if (row.hint) node.appendChild(el('div', 'row-hint', row.hint));
     return node;
   }
 
@@ -182,7 +194,7 @@
       for (const group of quota.groups) {
         if (group.caption) rows.appendChild(el('div', 'group-caption', group.caption));
         for (const row of group.rows) {
-          if (row.type === 'meter') rows.appendChild(meterRow(module, row));
+          if (row.type === 'meter') rows.appendChild(meterRow(row));
           else if (row.type === 'amount') rows.appendChild(amountRow(row));
           else rows.appendChild(stateRow(row));
         }

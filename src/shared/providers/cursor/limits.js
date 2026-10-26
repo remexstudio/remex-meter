@@ -11,6 +11,15 @@ const {
   cleanPlanText,
   displayPlanText
 } = require('../../limits/providerHelpers');
+const {
+  CURSOR_GROK_BOT,
+  CURSOR_MODE_POOL,
+  CURSOR_ON_DEMAND,
+  CURSOR_OTHER_MODES,
+  CURSOR_OVERALL,
+  CURSOR_REQUESTS,
+  CURSOR_TEAM_POOL
+} = require('../../limits/poolModules');
 
 function hashCursorAccountKey(account, resolvedUserId = '') {
   const accountId = String(account?.id || '').trim();
@@ -81,6 +90,7 @@ function cursorOnDemandWindow(usage, resetsAt) {
 
   if (limit !== null && remaining === null) remaining = Math.max(0, limit - used);
   return cursorBillingWindow('On-demand spend', {
+    limitId: CURSOR_ON_DEMAND,
     metric: 'spend',
     currency: 'USD',
     usedPercent: percentFromUsedLimit(used, limit),
@@ -131,8 +141,13 @@ async function fetchCursorAccountLimits(account, deps = {}) {
     && usage.requestsLimit > 0;
   const windows = [];
 
+  // A legacy request plan is its own window. Do not also emit the percent
+  // pools, even when the summary still carries auto/api percents: those
+  // fields are not the request allowance, and relabelling Requests as a pool
+  // would invent a second meter. Overall is the same kind of non-pool window.
   if (hasRequestUsage) {
     windows.push(cursorBillingWindow('Requests', {
+      limitId: CURSOR_REQUESTS,
       usedPercent: percentFromUsedLimit(usage.requestsUsed, usage.requestsLimit),
       used: usage.requestsUsed,
       limit: usage.requestsLimit,
@@ -143,17 +158,20 @@ async function fetchCursorAccountLimits(account, deps = {}) {
     }));
   } else if (finiteNumber(usage.autoPercent) !== null || finiteNumber(usage.apiPercent) !== null) {
     if (finiteNumber(usage.autoPercent) !== null) windows.push(cursorBillingWindow('Cursor Models', {
+      limitId: CURSOR_MODE_POOL,
       usedPercent: usage.autoPercent,
       resetsAt,
       windowMinutes: null
     }));
     if (finiteNumber(usage.apiPercent) !== null) windows.push(cursorBillingWindow('Other Models', {
+      limitId: CURSOR_OTHER_MODES,
       usedPercent: usage.apiPercent,
       resetsAt,
       windowMinutes: null
     }));
   } else if (usage.hasOverallUsage && finiteNumber(usage.planPercent) !== null) {
     windows.push(cursorBillingWindow('Overall', {
+      limitId: CURSOR_OVERALL,
       usedPercent: usage.planPercent,
       used: usage.planUsedUsd,
       limit: usage.planLimitUsd,
@@ -166,6 +184,7 @@ async function fetchCursorAccountLimits(account, deps = {}) {
   if (usage.grokBot?.hasNonZeroIncludedLimit === true && finiteNumber(usage.grokBot.usedPercent) !== null) {
     windows.push({
       kind: 'weekly',
+      limitId: CURSOR_GROK_BOT,
       label: 'Grok Bot',
       usedPercent: usage.grokBot.usedPercent,
       resetsAt: usage.grokBot.resetsAt || null,
@@ -181,6 +200,7 @@ async function fetchCursorAccountLimits(account, deps = {}) {
         ? Math.max(0, usage.teamPooledLimitUsd - (finiteNumber(usage.teamPooledUsedUsd) || 0))
         : null);
     windows.push(cursorBillingWindow('Team pool', {
+      limitId: CURSOR_TEAM_POOL,
       usedPercent: finiteNumber(usage.teamPooledPercent) ?? percentFromUsedLimit(usage.teamPooledUsedUsd, usage.teamPooledLimitUsd),
       used: usage.teamPooledUsedUsd,
       limit: usage.teamPooledLimitUsd,

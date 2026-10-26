@@ -46,6 +46,7 @@ test('fetchCursorLimits exposes the official model pools, Grok Bot, and on-deman
   assert.equal(result.provider, 'cursor');
   assert.equal(result.source, 'web');
   assert.deepEqual(result.windows.map((window) => window.label), ['Cursor Models', 'Other Models', 'Grok Bot', 'On-demand spend']);
+  assert.deepEqual(result.windows.map((window) => window.limitId), ['cursor.modePool', 'cursor.otherModes', 'cursor.grokBot', 'cursor.onDemand']);
   assert.equal(result.windows[0].kind, 'billing');
   assert.equal(result.windows[0].usedPercent, 20);
   assert.equal(result.windows[0].resetsAt, '2026-06-01T00:00:00.000Z');
@@ -82,6 +83,8 @@ test('fetchCursorLimits uses Requests for a legacy request-based plan', async ()
   });
 
   assert.deepEqual(result.windows.map((window) => window.label), ['Requests']);
+  assert.deepEqual(result.windows.map((window) => window.limitId), ['cursor.requests']);
+  assert.equal(result.windows.some((window) => window.limitId === 'cursor.modePool' || window.limitId === 'cursor.otherModes'), false);
   assert.equal(result.windows[0].usedPercent, 70);
   assert.equal(result.windows[0].used, 7);
   assert.equal(result.windows[0].limit, 10);
@@ -109,7 +112,56 @@ test('fetchCursorLimits hides Grok Bot only when no included allowance exists', 
     })
   });
 
-  assert.deepEqual(result.windows.map((window) => window.label), ['Cursor Models', 'Other Models']);
+  assert.deepEqual(result.windows.map((window) => [window.limitId, window.label]), [
+    ['cursor.modePool', 'Cursor Models'],
+    ['cursor.otherModes', 'Other Models']
+  ]);
+});
+
+test('fetchCursorLimits keeps Overall as its own window and does not relabel it as a pool', async () => {
+  const result = await fetchCursorLimits({}, {
+    readActiveAccount: () => ({ id: 'acct-1', sessionToken: 't', userId: 'u1' }),
+    probe: async () => ({
+      ok: true,
+      usage: {
+        planPercent: 15,
+        hasOverallUsage: true,
+        planUsedUsd: 15,
+        planLimitUsd: 100,
+        billingCycleEnd: '2026-06-01T00:00:00Z'
+      },
+      user: { sub: 'u1' }
+    })
+  });
+  assert.deepEqual(result.windows.map((window) => [window.limitId, window.label, window.usedPercent]), [
+    ['cursor.overall', 'Overall', 15]
+  ]);
+});
+
+test('fetchCursorLimits emits no pool window when the summary has no returned percentage', async () => {
+  const result = await fetchCursorLimits({}, {
+    readActiveAccount: () => ({ id: 'acct-1', sessionToken: 't', userId: 'u1' }),
+    probe: async () => ({
+      ok: true,
+      usage: { planPercent: null, autoPercent: null, apiPercent: null, hasOverallUsage: true, membershipType: 'pro' },
+      user: { sub: 'u1' }
+    })
+  });
+  assert.deepEqual(result.windows, []);
+});
+
+test('fetchCursorLimits can return one Cursor pool when the other percentage is absent', async () => {
+  const result = await fetchCursorLimits({}, {
+    readActiveAccount: () => ({ id: 'acct-1', sessionToken: 't', userId: 'u1' }),
+    probe: async () => ({
+      ok: true,
+      usage: { autoPercent: 12, apiPercent: null },
+      user: { sub: 'u1' }
+    })
+  });
+  assert.deepEqual(result.windows.map((window) => [window.limitId, window.usedPercent]), [
+    ['cursor.modePool', 12]
+  ]);
 });
 
 test('fetchCursorLimits shows uncapped positive spend but hides a zero-dollar non-cap', async () => {
@@ -273,8 +325,9 @@ test('fetchCursorLimits includes team pool when Cursor reports pooled usage', as
     })
   });
 
-  const pool = result.windows.find((window) => window.label === 'Team pool');
+  const pool = result.windows.find((window) => window.limitId === 'cursor.teamPool');
   assert.ok(pool);
+  assert.equal(pool.label, 'Team pool');
   assert.equal(pool.kind, 'billing');
   assert.equal(pool.usedPercent, 45.25);
   assert.equal(pool.used, 127251.35);

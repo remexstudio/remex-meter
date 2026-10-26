@@ -106,12 +106,14 @@ function parseUsageSummary(input, { requestUsage = null } = {}) {
   const teamPooledLimit = numberOrNull(teamPooled.limit);
   const teamPooledRemaining = numberOrNull(teamPooled.remaining);
 
+  // A percentage is shown only when the summary returned one, or when both
+  // sides of a used/limit pair are present so the ratio is the provider's own
+  // figure. A missing side stays null. It is not filled in as 0%.
   let planPercent = clampPercent(numberOrNull(plan.totalPercentUsed));
   if (planPercent === null) {
-    if (planLimit > 0) planPercent = percentFromUsedLimit(planUsed, planLimit);
-    else if (overallLimit !== null && overallLimit > 0) planPercent = percentFromUsedLimit(overallUsed, overallLimit);
-    else if (teamPooledLimit !== null && teamPooledLimit > 0) planPercent = percentFromUsedLimit(teamPooledUsed, teamPooledLimit);
-    else planPercent = 0;
+    if (planLimit > 0 && numberOrNull(plan.used) !== null) planPercent = percentFromUsedLimit(planUsed, planLimit);
+    else if (overallLimit !== null && overallLimit > 0 && overallUsed !== null) planPercent = percentFromUsedLimit(overallUsed, overallLimit);
+    else if (teamPooledLimit !== null && teamPooledLimit > 0 && teamPooledUsed !== null) planPercent = percentFromUsedLimit(teamPooledUsed, teamPooledLimit);
   }
 
   let resolvedPlanUsed = planUsed;

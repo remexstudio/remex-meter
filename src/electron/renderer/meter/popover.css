@@ -192,11 +192,13 @@ body.material-fallback .popover {
   gap: 4px;
 }
 
-.row-reset {
+.row-reset, .row-hint {
   font-size: 11px;
   color: var(--secondary-label);
   font-variant-numeric: tabular-nums;
 }
+
+.state-text { color: var(--label); }
 
 .meter {
   position: relative;

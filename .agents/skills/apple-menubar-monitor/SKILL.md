@@ -39,14 +39,14 @@ The popover is a vertical stack of compact modules in the default tool order fro
 
 | Module | Source window | Rule |
 |---|---|---|
-| **Cursor Mode Pool** | Cursor limits window currently labelled `Cursor Models` (usage-summary `plan.autoPercentUsed`) | Its own meter. |
-| **Cursor Other Modes** | Cursor limits window currently labelled `Other Models` (usage-summary `plan.apiPercentUsed`) | Its own meter. Never merged with Mode Pool into one bar. |
-| **Grok Heavy Weekly** | Grok limits window for the Heavy weekly allowance | Its own meter. |
-| **Grok Bolt Weekly** | Grok limits window for the Bolt weekly allowance | Its own meter. Never summed with Heavy. |
+| **Cursor Mode Pool** | `limitId: cursor.modePool` (usage-summary `plan.autoPercentUsed`; upstream label `Cursor Models`) | Its own meter. |
+| **Cursor Other Modes** | `limitId: cursor.otherModes` (usage-summary `plan.apiPercentUsed`; upstream label `Other Models`) | Its own meter. Never merged with Mode Pool into one bar. |
+| **Grok Heavy Weekly** | `limitId: grok.heavyWeekly` | Its own meter. No source emits this id today. |
+| **Grok Bolt Weekly** | `limitId: grok.boltWeekly` | Its own meter. Never summed with Heavy. No source emits this id today. |
 
 - A meter shows `usedPercent` exactly as the limits record carries it. Never compute a percentage the provider did not return, never average or sum pools, never fill a missing value.
 - **Unavailable is not zero.** A window that is absent, or a provider whose status is not `ok`, renders an explicit state ("Unavailable", "Sign in required", "Not configured") with no bar, not an empty bar and not `0%`.
-- Until the upstream Grok provider exposes separate Heavy and Bolt windows (it currently emits one billing window derived from `creditUsagePercent`), both Grok modules render as unavailable. Do not relabel the single window as either pool, and do not confuse either pool with the `Grok Bot` window on a Cursor account.
+- Select every pool row by `limitId`, not by the upstream label. A `Requests` or `Overall` Cursor window keeps its own name; both Cursor pools render Unavailable. Grok emits one `grok.credits` window. No documented source reports Heavy and Bolt separately (`docs/providers/grok.md`), so both Grok pools render Unavailable. Do not relabel `grok.credits` as either pool, and do not confuse either pool with the `Grok Bot` window on a Cursor account.
 - Money windows (`metric === 'credits'` or `'spend'`) go through `src/shared/limits/balanceDisplay.js`; they are amounts, not meters.
 - Usage (tokens, cost from tokscale) and limits (provider quota) are separate lines. Never derive a quota from tokens or tokens from a quota.
 
